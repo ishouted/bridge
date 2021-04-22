@@ -45,6 +45,27 @@
 </template>
 
 <script>
+/*---------------------bridge跨链交易状态-----------------------*/
+//跨链交易本链未确认
+// int BG_CROSS_TX_LOCAL_UNCONFIRM = 0;
+// //跨链交易本链已确认
+// int BG_CROSS_TX_LOCAL_CONFIRM = 1;
+// //等待广播闪对交易
+// int BG_WAIT_BROAD_CONVERT = 2;
+// //闪对交易已广播待确认
+// int BG_CROSS_TX_CONVERT_UNCONFIRM = 3;
+// //闪对交易广播失败
+// int BG_CROSS_TX_CONVERT_FAIL = 4;
+// //等待广播nerve跨链交易
+// int BG_WAIT_BROAD_NERVE = 5;
+// //跨链交易NERVE链已广播待确认
+// int BG_CROSS_TX_NERVE_UNCONFIRM = 6;
+// //跨链交易NERVE链广播失败
+// int BG_CROSS_TX_NERVE_FAIL = 7;
+// //目标链最终确认
+// int BG_CROSS_TX_TARGET_CONFIRM = 8;
+// //跨链交易失败
+// int BG_CROSS_TX_FAIL = 9;
 import BackBar from '@/components/BackBar'
 import { superLong, divisionAndFix, networkOrigin, copys } from '@/api/util'
 export default {
@@ -81,7 +102,6 @@ export default {
   mounted() {
     this.getDetail();
     const timer = setInterval(() => {
-      console.log(5566)
       this.getDetail();
     }, 10000)
     this.$once("hook:beforeDestroy", () => {

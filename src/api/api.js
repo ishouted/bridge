@@ -68,7 +68,7 @@ export class NTransfer {
       method: "eth_sign",
       params: [signAddress, hash]
     })
-    console.log(flat, 66, signAddress)
+    // console.log(flat, 66, signAddress)
     flat = flat.slice(2) // 去掉0x
     const r = flat.slice(0, 64);
     const s = flat.slice(64, 128);
@@ -254,7 +254,13 @@ export class NTransfer {
     //console.log(transferInfo, 8888);
     const config = JSON.parse(sessionStorage.getItem("config"));
     const mainAsset = config.NERVE;
-    const nonce = await this.getNonce(transferInfo);
+    let nonce;
+    if (transferInfo.nonce) {
+      nonce = transferInfo.nonce
+    } else {
+      nonce = await this.getNonce(transferInfo);
+    }
+    // const nonce = await this.getNonce(transferInfo);
     const mainAssetNonce = await this.getNonce({
       from: transferInfo.from,
       assetsChainId: mainAsset.chainId,

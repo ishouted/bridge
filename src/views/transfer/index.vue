@@ -4,11 +4,12 @@
     <div class="content">
       <div class="content-inner">
         <div class="step-list">
-          <div class="step" v-for="(item, index) in stepList" :key="index">
-            <div
-              class="left"
-              :class="{ active: index + 1 <= currentStep && item.done }"
-            >
+          <div
+            class="step"
+            :class="{ active: index + 1 <= currentStep && item.done }"
+            v-for="(item, index) in stepList" :key="index"
+          >
+            <div class="left">
               <div class="circle">
                 <div class="inner">{{ index + 1 }}</div>
               </div>
@@ -32,6 +33,8 @@
 import BackBar from "@/components/BackBar";
 import { NTransfer, ETransfer } from "@/api/api";
 import { MAIN_INFO, NULS_INFO } from "@/config"
+import BufferReader from "nerve-sdk-js/lib/utils/bufferreader";
+import txs from "nerve-sdk-js/lib/model/txs";
 
 
 function sleep(time) {
@@ -42,12 +45,7 @@ export default {
   data() {
     return {
       loading: true,
-      stepList: [
-        /* {label: this.$t('transfer.transfer2'), done: false},
-        {label: this.$t('transfer.transfer3'), done: false},
-        {label: this.$t('transfer.transfer4'), done: false},
-        {label: this.$t('transfer.transfer5'), done: false}, */
-      ],
+      stepList: [],
       currentStep: 1,
     };
   },
@@ -74,7 +72,6 @@ export default {
     }
     this.sessionInfo = info;
     this.initTransfer();
-    // this.constructSwapTx(info.swapInfo)
   },
   destroyed() {
     sessionStorage.removeItem("transferInfo");
@@ -91,7 +88,8 @@ export default {
           crossInInfo, // 异构链转入
           NULSContracInfo, // nuls 合约token跨链
           crossInForSwapInfo, // 闪兑资产
-          swapInfo // 闪兑交易
+          swapInfo, // 闪兑交易
+          isTransferMainAsset, // 跨链资产是否是来源链的主资产
         } = this.sessionInfo;
         if (fromChain === "NERVE") {
           let type, transferInfo;
@@ -121,20 +119,24 @@ export default {
             fromChain, type, transferInfo, txData, this.$t("transfer.transfer2"), true
           )
           if (toChain !== "NERVE") {
-            if (crossInForSwapInfo) {
+            if (swapInfo) {
               // 转入一笔主资产用于闪兑手续费
               await this.constructTx(
                 fromChain, 10, crossInForSwapInfo, {}, this.$t("transfer.transfer3"), true
               )
+
+              //组装闪兑交易/闪兑+提现交易
+              // await this.constructSwapAndWithdrawalTx()
             }
-            if (swapInfo) {
-              //组装闪兑交易
-              await this.constructSwapTx(swapInfo, this.$t("transfer.transfer4"))
-            }
-            // 提现
-            await this.constructTx(
-              "NERVE", 43, crossOutInfo, crossOutInfo.txData, this.$t("transfer.transfer5"), false
-            )
+            await this.constructSwapAndWithdrawalTx()
+            
+            /* // 如果用于闪兑资产和提现资产是同一种，则需要通过闪兑hash计算提现资产的nonce值，不走下面这个函数
+            if (!isTransferMainAsset && swapInfo || !swapInfo) {
+              // 提现, 如果提现资产为闪兑手续费资产
+              await this.constructTx(
+                "NERVE", 43, crossOutInfo, crossOutInfo.txData, this.$t("transfer.transfer5"), false
+              )
+            } */
           }
         } else {
           // 异构链转入
@@ -145,21 +147,24 @@ export default {
               // 转入一笔主资产用于闪兑手续费
               await this.constructCrossInTx(crossInForSwapInfo, this.$t("transfer.transfer3"));
 
-              //组装闪兑交易
-              await this.constructSwapTx(swapInfo, this.$t("transfer.transfer4"))
+              //组装闪兑交易/闪兑+提现交易
+              // await this.constructSwapAndWithdrawalTx()
             }
-            let type, transferInfo;
-            if (toChain === "NULS") {
-              type = 10;
-              transferInfo = crossInfo
-            } else {
-              type = 43;
-              transferInfo = crossOutInfo
-            }
-            const txData = transferInfo.txData || {};
-            await this.constructTx(
-              "NERVE", type, transferInfo, txData, this.$t("transfer.transfer5"), false
-            )
+            await this.constructSwapAndWithdrawalTx()
+            /* if (!isTransferMainAsset && swapInfo || !swapInfo) {
+              let type, transferInfo;
+              if (toChain === "NULS") {
+                type = 10;
+                transferInfo = crossInfo
+              } else {
+                type = 43;
+                transferInfo = crossOutInfo
+              }
+              const txData = transferInfo.txData || {};
+              await this.constructTx(
+                "NERVE", type, transferInfo, txData, this.$t("transfer.transfer5"), false
+              )
+            } */
           }
         }
         this.runTransfer();
@@ -197,22 +202,78 @@ export default {
       this.stepList.push(step);
     },
 
-    //广播nerve nuls跨链转账交易
-    async broadcastHex(txHex) {
-      const url = this.sessionInfo.fromChain === "NERVE" ? MAIN_INFO.rpc : NULS_INFO.rpc;
-      const chainId = this.sessionInfo.fromChain === "NERVE" ? MAIN_INFO.chainId : NULS_INFO.chainId;
-      const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
-      if (res.result && res.result.hash) {
-        return { hash: res.result.hash };
-      } else {
-        throw "广播nerve nuls交易失败"
-      }
-    },
-    
     // 组装闪兑交易
-    async constructSwapTx(swapInfo, label) {
-      const fn = async () => {
+    async constructSwapAndWithdrawalTx() {
+      const { toChain, crossInfo, crossOutInfo, isTransferMainAsset, swapInfo} = this.sessionInfo;
+
+      let type, transferInfo;
+      if (toChain === "NULS") {
+        type = 10;
+        transferInfo = crossInfo
+      } else {
+        type = 43;
+        transferInfo = crossOutInfo
+      }
+      const txData = transferInfo.txData || {};
+
+      if (swapInfo) {
         const txHexForSign = await this.getSwapHex(swapInfo);
+        await this.constructSwapTx(swapInfo, txHexForSign);
+        if (isTransferMainAsset) {
+          const bufferReader = new BufferReader(Buffer.from(txHexForSign, "hex"), 0);
+          // 反序列回交易对象
+          const tAssemble = new txs.Transaction();
+          tAssemble.parse(bufferReader);
+          const hash = tAssemble.getHash().toString("hex");
+          const nonce = hash.slice(-16);
+          transferInfo.nonce = nonce
+          await this.constructTx(
+            "NERVE", type, transferInfo, txData, this.$t("transfer.transfer5"), false
+          )
+        } else {
+          await this.constructTx(
+            "NERVE", type, transferInfo, txData, this.$t("transfer.transfer5"), false
+          )
+        }
+      } else {
+        // await this.constructSwapTx(swapInfo, txHexForSign);
+        await this.constructTx(
+          "NERVE", type, transferInfo, txData, this.$t("transfer.transfer5"), false
+        )
+      }
+
+      // const txHexForSign = await this.getSwapHex(swapInfo);
+      /* if (isTransferMainAsset) {
+        // 如果用于闪兑资产和提现资产是同一种，则需要通过闪兑hash计算提现资产的nonce值，否则nonce为同一个报孤儿交易
+        await this.constructSwapTx(swapInfo, txHexForSign);
+        const bufferReader = new BufferReader(Buffer.from(txHexForSign, "hex"), 0);
+        // 反序列回交易对象
+        const tAssemble = new txs.Transaction();
+        tAssemble.parse(bufferReader);
+        const hash = tAssemble.getHash().toString("hex");
+        const nonce = hash.slice(-16);
+        let type, transferInfo;
+        if (toChain === "NULS") {
+          type = 10;
+          transferInfo = crossInfo
+        } else {
+          type = 43;
+          transferInfo = crossOutInfo
+        }
+        const txData = transferInfo.txData || {};
+        transferInfo.nonce = nonce
+        await this.constructTx(
+          "NERVE", type, transferInfo, txData, this.$t("transfer.transfer5"), false
+        )
+      } else {
+        await this.constructSwapTx(swapInfo, txHexForSign);
+      } */
+    },
+
+    async constructSwapTx(swapInfo, txHexForSign) {
+      const swapLabel = this.$t("transfer.transfer4");
+      const fn = async () => {
+        // const txHexForSign = await this.getSwapHex(swapInfo);
         const transfer = new NTransfer({ chain: "NERVE" }); 
         const { pub, signAddress } = this.sessionInfo;
         return await transfer.appendSignature({
@@ -222,15 +283,10 @@ export default {
         });
       }
       this.stepList.push({
-        label,
+        label: swapLabel,
         done: false,
         fn
       });
-      // const txHex = await fn();
-      // console.log(swapInfo, "=swapInfo");
-      // this.$post("http://beta.public.nerve.network", "validateTx", [txHex])
-      // this.$post("http://beta.public.nerve.network", "broadcastTx", [txHex])
-    
     },
     // 获取闪兑hex
     async getSwapHex(swapInfo) {
@@ -274,10 +330,11 @@ export default {
         contractAddress,
         symbol,
         amount,
-        txHash: "",
-        feeTxHash: "",
-        convertTxHex: "",
-        crossTxHex: ""
+        txHash: "", // 第一条交易hash
+        feeTxHash: "", // 转入的手续费hash
+        convertTxHex: "", // 闪兑hex
+        crossTxHex: "", // nerve转出到其他网络hex
+        convertSymbol: this.stepList.length > 2
       }
       try {
         let updateTx = {
@@ -289,19 +346,20 @@ export default {
         for (let i = 0; i < this.stepList.length; i++) {
           const step = this.stepList[i];
           if (!step.done) {
+            //  调用metamask转账/签名hash
             let res = await step.fn();
-            this.currentStep++;
             console.log(res, 123);
+            // 广播nuls转入nerve的交易
             if (step.needBroadcast) {
               res = await this.broadcastHex(res)
             }
             if (res) {
-              this.stepList[i].done = true;
               if (res.hash) {
                 if (i === 0) {
                   //异构链转入
                   broadcastData.txHash = res.hash;
                   updateTx.txHash = res.hash;
+                  // 将交易txHash及其他基本信息发给后台已记录该交易
                   await this.broadcast(broadcastData)
                 } else {
                   // 异构链转入手续费
@@ -317,17 +375,35 @@ export default {
                 }
               }
               await sleep(500);
+              this.stepList[i].done = true;
+              this.currentStep++;
             } else {
               break;
             }
           }
         }
+        // 最终更新广播交易
         this.updateTx(updateTx)
       } catch (e) {
         console.error("error: " + e);
         this.$message({ message: "交易失败，请稍后再试", type: "warning" });
+        setTimeout(() => {
+          this.$router.push("/")
+        }, 3000)
       }
     },
+    //广播nerve nuls跨链转账交易
+    async broadcastHex(txHex) {
+      const url = this.sessionInfo.fromChain === "NERVE" ? MAIN_INFO.rpc : NULS_INFO.rpc;
+      const chainId = this.sessionInfo.fromChain === "NERVE" ? MAIN_INFO.chainId : NULS_INFO.chainId;
+      const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
+      if (res.result && res.result.hash) {
+        return { hash: res.result.hash };
+      } else {
+        throw "广播nerve nuls交易失败"
+      }
+    },
+    // 将交易txHash及其他基本信息发给后台已记录该交易
     async broadcast(data) {
       const res = await this.$request({
         url: "/tx/cross/bridge/transfer",
@@ -336,22 +412,6 @@ export default {
       if (res.code !== 1000) {
         throw "交易失败"
       }
-      /* if (res.code === 1000) {
-        this.$message({
-          message: this.$t("tips.tips1"),
-          type: "success",
-          duration: 2000
-        })
-      } else {
-        this.$message({
-          message: res.msg,
-          type: "warning",
-          duration: 2000
-        })
-      }
-      setTimeout(() => {
-        this.$router.push("/")
-      }, 2000) */
     },
     /**
      * 更新广播交易
@@ -386,6 +446,22 @@ export default {
   .step {
     display: flex;
     height: 80px;
+    &.active {
+      .left {
+        .circle {
+          background-color: #d2f3ff;
+          .inner {
+            background-color: #5bcaf9;
+          }
+        }
+        .line {
+          background-color: #5bcaf9;
+        }
+      }
+      .right span {
+        color: #5bcaf9;
+      }
+    }
     .left {
       margin-right: 15px;
       display: flex;
@@ -419,17 +495,7 @@ export default {
         background-color: #cacdd8;
         flex: 1;
       }
-      &.active {
-        .circle {
-          background-color: #d2f3ff;
-          .inner {
-            background-color: #5bcaf9;
-          }
-        }
-        .line {
-          background-color: #5bcaf9;
-        }
-      }
+      
     }
     .right {
       padding-top: 5px;
