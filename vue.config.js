@@ -6,7 +6,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 console.log("use config file : " + process.cwd() + "/config/" + process.env.NULS_ENV + ".js");
 module.exports = {
 
-  publicPath: process.env.NODE_ENV === 'production' ? 'dist/' : '/',
+  publicPath: process.env.NODE_ENV === 'production' ? '/' : '/',
 
   pluginOptions: {
     i18n: {
