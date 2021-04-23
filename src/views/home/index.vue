@@ -57,7 +57,8 @@
           <el-input
             class="amount-inner"
             placeholder="0.0"
-            v-model="amount"
+            :value="amount"
+            @input="validateAmount"
             @change="getTransferFee"
           >
             <!-- <el-select v-model="assetId" slot="prepend" :placeholder="$t('home.home6')" @change="selectAsset">
@@ -448,6 +449,8 @@ export default {
         } else {
           this.fromNetworkMsg = "";
         }
+      } else {
+        this.fromNetworkMsg = "";
       }
     },
     reset() {
@@ -623,6 +626,15 @@ export default {
         this.available = divisionDecimals(res.data.balance, res.data.decimals);
         this.getTransferFee();
       }
+    },
+    validateAmount(val) {
+      const decimals = this.chooseAsset && this.chooseAsset.decimals || 8;
+      const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
+      if (patrn.exec(val)|| val==="") {
+        this.amount = val
+      }
+      // if (!patrn.exec(val)) return
+      console.log(val, 55)
     },
     // 计算交易手续费
     async getTransferFee() {
