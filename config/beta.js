@@ -12,4 +12,4 @@ export const NULS_INFO = { chainId: 2, assetId: 1, prefix: 'tNULS',symbol:"NULS"
 //ETH 网络信息 测试网:ropsten, 主网:homestead
 export const ETHNET = 'ropsten';
 
-export const API_URL = "http://api.v2.nabox.io/nabox-api"
+export const API_URL = "http://nabox_api.zhoulijun.top/nabox-api"
