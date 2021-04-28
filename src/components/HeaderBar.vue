@@ -28,12 +28,16 @@
                 <span>{{ $t("header.header2") }}</span>
               </li>
               <li>
-                <i class="iconfont icon-zichanshangjia"></i>
-                <span>{{ $t("header.header3") }}</span>
+                <a href="https://forms.gle/XFMrcYQLhapYyLaSA" target="_blank">
+                  <i class="iconfont icon-zichanshangjia"></i>
+                  <span>{{ $t("header.header3") }}</span>
+                </a>
               </li>
               <li>
-                <i class="iconfont icon-shenjibaogao"></i>
-                <span>{{ $t("header.header4") }}</span>
+               <a href="https://drive.google.com/drive/folders/13gk5XzfJmCUyRCmoleWH47REUOyGc4yo" target="_blank">
+                  <i class="iconfont icon-shenjibaogao"></i>
+                  <span>{{ $t("header.header4") }}</span>
+               </a>
               </li>
             </ul>
           </div>
@@ -49,8 +53,12 @@
           </div>
           <div class="bottom-wrap">
             <div class="community">
-              <img src="../assets/img/Telegram.svg" alt="">
-              <img src="../assets/img/Discord.svg" alt="">
+              <a href="https://t.me/NerveNetwork" target="_blank">
+                <img src="../assets/img/Telegram.svg" alt="">
+              </a>
+              <a href="https://discord.gg/PBkHeD7" target="_blank">
+                <img src="../assets/img/Discord.svg" alt="">
+              </a>
               <!-- <span class="iconfont icon-Telegram"></span>
               <span class="iconfont icon-Discord"></span> -->
             </div>
@@ -170,6 +178,9 @@
       quit() {
         this.$emit("quit")
         this.showAccountDialog = false;
+      },
+      openLink(url) {
+        window.open(url)
       }
     },
   }
@@ -324,6 +335,7 @@
           height: 22px;
           margin-right: 20px;
           cursor: pointer;
+          vertical-align: middle;
           &:hover {
             opacity: 0.65;
           }

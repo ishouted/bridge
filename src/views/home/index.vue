@@ -113,7 +113,7 @@
           </div>
         </div>
         <div class="btn-wrap tc">
-          <el-button type="primary" v-if="crossInAuth" @click="approveERC20">{{
+          <el-button type="primary" v-if="crossInAuth" :disabled="this.fromNetworkMsg" @click="approveERC20">{{
             $t("home.home10")
           }}</el-button>
           <el-button type="primary" v-else :disabled="!canNext" @click="next">{{
@@ -315,7 +315,7 @@ export default {
       }
       if (this.walletType === "metamask") {
         if (window.ethereum) {
-          this.initMetamask(false);
+          this.initMetamask();
         }
       } else if (this.walletType === "walletConnect") {
         // this.initWalletConnect();
@@ -324,19 +324,25 @@ export default {
 
     },
     // 初始化metamask wallet provider address
-    async initMetamask(needRequest = false) {
+    async initMetamask() {
       this.wallet = window.ethereum;
       this.address = this.wallet.selectedAddress;
-      if (needRequest) {
-        await this.wallet.request({ method: "eth_requestAccounts" });
+      if (!this.address) {
+        await this.requestAccounts();
       }
-      
       this.fromChainId = this.wallet.chainId;
       this.provider = new ethers.providers.Web3Provider(window.ethereum);
       this.supportListShow = false;
       this.checkNetwork(this.fromNetwork);
       this.listenAccountChange();
       this.listenNetworkChange();
+    },
+    async requestAccounts() {
+      const res = await this.wallet.request({ method: "eth_requestAccounts" });
+      if (res.length) {
+        this.address = res[0]
+      }
+      // console.log(res, "==res")
     },
     //连接metamask
     async connectMetamask() {
@@ -346,7 +352,7 @@ export default {
         try {
           this.walletType = "metamask";
           sessionStorage.setItem("walletType", "metamask");
-          await this.initMetamask(true);
+          await this.initMetamask();
         } catch (e) {
           this.$message({ message: "连接失败, 请稍后重试" });
         }
@@ -416,7 +422,7 @@ export default {
     //监听账户改变
     listenAccountChange() {
       this.wallet.on("accountsChanged", (accounts) => {
-        // console.log(accounts, 556)
+        // console.log(accounts, "===accounts-changed===")
         if (accounts.length && this.walletType) {
           this.address = accounts[0];
           // this.getBalance();
@@ -470,7 +476,7 @@ export default {
     async derivedAddress() {
       try {
         if (!this.address) {
-          await this.wallet.request({ method: "eth_requestAccounts" });
+          await this.requestAccounts();
         }
         const jsonRpcSigner = this.provider.getSigner();
         let message = "Derive Accounts";
@@ -538,7 +544,7 @@ export default {
         this.address = "";
         this.$message({ message: "派生多链地址失败", type: "error" });
       }
-      this.showSign = false;
+      // this.showSign = false;
     },
     async syncAccount(pub, accounts) {
       const addressList = [];
@@ -633,8 +639,6 @@ export default {
       if (patrn.exec(val)|| val==="") {
         this.amount = val
       }
-      // if (!patrn.exec(val)) return
-      console.log(val, 55)
     },
     // 计算交易手续费
     async getTransferFee() {
