@@ -492,6 +492,7 @@ export default {
             Ethereum: this.address,
             BSC: this.address,
             Heco: this.address,
+            OKExChain: this.address
           },
         };
         if (recoveredPubKey.startsWith("0x04")) {

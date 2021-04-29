@@ -549,7 +549,8 @@ export const networkOrigin = {
   Ethereum: isBeta ? 'https://ropsten.etherscan.io' : 'https://etherscan.io',
   BSC: isBeta ? 'https://testnet.bscscan.com' : 'https://bscscan.com',
   // HTOrigin: isBeta ? 'https://scan-testnet.hecochain.com' : 'https://scan.hecochain.com'
-  Heco: isBeta ? 'https://testnet.hecoinfo.com' : 'https://hecoinfo.com'
+  Heco: isBeta ? 'https://testnet.hecoinfo.com' : 'https://hecoinfo.com',
+  OKExChain: isBeta ? "https://www.oklink.com/okexchain-test" : "https://www.oklink.com/okexchain"
 }
 
 export function getLogoSrc(symbol) {

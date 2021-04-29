@@ -65,12 +65,14 @@ export default {
       if (accountInfo.code === 1000) {
       
         accountInfo.data.map(v => {
-          list.push({
-            address: v.address,
-            chain: v.chain,
-            symbol: v.symbol,
-            balance: divisionAndFix(v.balance, v.decimals, 8)
-          })
+          if (v.chain !== "OKExChain") {
+            list.push({
+              address: v.address,
+              chain: v.chain,
+              symbol: v.symbol,
+              balance: divisionAndFix(v.balance, v.decimals, 8)
+            })
+          }
         })
 
         const order = ["NERVE", "NULS", "Ethereum", "BSC", "Heco"]

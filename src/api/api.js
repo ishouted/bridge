@@ -376,6 +376,10 @@ const RPC_URL = {
   Heco: {
     ropsten: "https://http-testnet.hecochain.com",
     homestead: "https://http-mainnet.hecochain.com"
+  },
+  OKExChain: {
+    ropsten: "https://exchaintestrpc.okex.org",
+    homestead: "https://exchainrpc.okex.org"
   }
 };
 
