@@ -487,14 +487,20 @@ export default {
           msgHashBytes,
           signature
         );
+        
+        
         const account = {
           address: {
             Ethereum: this.address,
             BSC: this.address,
             Heco: this.address,
-            OKExChain: this.address
+            // OKExChain: this.address
           },
         };
+        const config = JSON.parse(sessionStorage.getItem("config"));
+        if (config.OKExChain) {
+          account.address.OKExChain = this.address;
+        }
         if (recoveredPubKey.startsWith("0x04")) {
           const compressPub = ethers.utils.computePublicKey(
             recoveredPubKey,
