@@ -113,7 +113,7 @@
           </div>
         </div>
         <div class="btn-wrap tc">
-          <el-button type="primary" v-if="crossInAuth" :disabled="fromNetworkMsg" @click="approveERC20">{{
+          <el-button type="primary" v-if="crossInAuth" :disabled="!!fromNetworkMsg" @click="approveERC20">{{
             $t("home.home10")
           }}</el-button>
           <el-button type="primary" v-else :disabled="!canNext" @click="next">{{
