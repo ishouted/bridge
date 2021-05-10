@@ -24,6 +24,10 @@ const cn = {
     home10: "点击授权",
     home11: "加速",
     home12: "查询闪兑费用失败，请稍后重试",
+    home13: "Swft",
+    home14: "Cross-chain",
+    home15: "跨链交易再各条链上确认时间较长，需数分钟， 请耐心等待",
+    home16: "接收地址",
   },
   public: {
     amount: "数量",

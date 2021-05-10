@@ -557,35 +557,12 @@ export function getLogoSrc(symbol) {
   return "https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/" + symbol + ".png"
 }
 
-/**
- * data.network 当前网络 beta/main
- * data.fromChain 来源链
- * data.contractAddress  eth、bnb上token资产合约地址
- * data.assetsChainId
- * data.assetsId
- */
- export async function getAssetNerveInfo(data) {
-  //console.log(data, 888999)
-  let result = null;
-  let params = {};
-  if (data.contractAddress) {
-    const config = JSON.parse(sessionStorage.getItem("config"));
-    const mainAsset = config[data.network][data.fromChain]; //来源链(eth,bnb,heco)主资产信息
-    params = {chainId: mainAsset.chainId, contractAddress: data.contractAddress};
-  } else {
-    params = {chainId: data.assetsChainId, assetId: data.assetsId};
-  }
-  //console.log(params);
-  try {
-    const res = await request({url: "/asset/nerve/chain/info", data: params});
-    //console.log(res);
-    if (res.code === 1000) {
-      result = res.data;
-    }
-  } catch (e) {
-    console.error(e);
-  }
-  return result;
-}
 
-
+export const supportChainList = [
+  { label: "NERVE", value: "NERVE", symbol: "NVT" },
+  { label: "NULS", value: "NULS", symbol:"NULS" },
+  { label: "Ethereum", value: "Ethereum", symbol:"ETH", ropsten: "0x3", homestead: "0x1" },
+  { label: "BSC", value: "BSC", symbol:"BNB", ropsten: "0x61", homestead: "0x38" },
+  { label: "Heco", value: "Heco", symbol:"HT", ropsten: "0x100", homestead: "0x80" },
+  { label: "OKExChain", value: "OKExChain", symbol:"OKT", ropsten: "0x41", homestead: "0x42" }
+];

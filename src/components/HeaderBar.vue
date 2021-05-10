@@ -43,12 +43,14 @@
           </div>
           <div class="network">
             <p class="label">{{ $t("header.header5") }}</p>
-            <el-radio-group v-model="network" @change="toggleMenu">
-              <el-radio-button label="NERVE">NERVE</el-radio-button>
-              <el-radio-button label="NULS">NULS</el-radio-button>
-              <el-radio-button label="Ethereum">Ethereum</el-radio-button>
-              <el-radio-button label="BSC">BSC</el-radio-button>
-              <el-radio-button label="Heco">Heco</el-radio-button>
+            <el-radio-group v-model="currentChain" @change="toggleMenu">
+              <el-radio-button
+                v-for="item in supportChainList"
+                :key="item.value"
+                :label="item.value"
+              >
+              {{ item.label }}
+              </el-radio-button>
             </el-radio-group>
           </div>
           <div class="bottom-wrap">
@@ -59,28 +61,12 @@
               <a href="https://discord.gg/PBkHeD7" target="_blank">
                 <img src="../assets/img/Discord.svg" alt="">
               </a>
-              <!-- <span class="iconfont icon-Telegram"></span>
-              <span class="iconfont icon-Discord"></span> -->
             </div>
             <div class="language clicks" @click="lang=lang==='cn' ? 'en' : 'cn'">
               <span class="iconfont icon-yuyan"></span>
               {{ lang === "cn" ? "EN" : "中文" }}
             </div>
           </div>
-          <!-- <div class="language">
-            <p class="label">{{ $t("header.header6") }}</p>
-            <el-radio-group v-model="lang" @change="toggleMenu">
-              <el-radio-button label="cn">中文</el-radio-button>
-              <el-radio-button label="en">EN</el-radio-button>
-            </el-radio-group>
-          </div>
-          <div class="community">
-            <p>{{ $t("header.header7") }}</p>
-            <div>
-              <span class="iconfont icon-Telegram"></span>
-              <span class="iconfont icon-Discord"></span>
-            </div>
-          </div> -->
         </div>
         
       </div>
@@ -104,13 +90,14 @@
 </template>
 
 <script>
-  import { superLong, copys, networkOrigin } from '@/api/util'
+  import { superLong, copys, networkOrigin, supportChainList } from '@/api/util'
 
   export default {
     data() {
+      this.supportChainList = supportChainList;
       return {
         showMenu: false,
-        network: this.$store.state.network,
+        currentChain: this.$store.state.network,
         lang: localStorage.getItem("lang") || "cn",
         showAccountDialog: false,
       };
@@ -121,13 +108,13 @@
     components: {
     },
     watch: {
-      network: {
-        immediate: true,
+      '$store.state.network': {
         handler(val) {
-          if (val) {
-            this.$store.commit("changeNetwork", val)
-          }
+          this.currentChain = val
         }
+      },
+      currentChain(val) {
+        this.$store.commit("changeNetwork", val)
       },
       lang(val) {
         if (val) {
@@ -160,9 +147,9 @@
         })
       },
       openUrl() {
-        const baseUrl = networkOrigin[this.network];
+        const baseUrl = networkOrigin[this.currentChain];
         let url;
-        if (this.network !== "NERVE" && this.network !== "NULS") {
+        if (this.currentChain !== "NERVE" && this.currentChain !== "NULS") {
           url = baseUrl + "/address/" + this.address;
         } else {
           url = baseUrl + "/address/info?address=" + this.address

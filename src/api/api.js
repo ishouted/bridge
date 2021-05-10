@@ -885,5 +885,6 @@ export const swapSymbolConfig = {
   ETH: "ETH",
   BNB: "BNB(BSC)",
   HT: "HT(HECO)",
+  OKT: "OKT(OKT)",
   NULS: "NULS"
 }

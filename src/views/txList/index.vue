@@ -96,6 +96,7 @@ export default {
         data
       });
       if (res.code === 1000) {
+        res.data.map(v=> v.createTime = v.createTime.substring(5))
         this.txList = res.data
       }
       this.loading = false;

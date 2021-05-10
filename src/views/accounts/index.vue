@@ -63,19 +63,15 @@ export default {
         data: { pubKey }
       })
       if (accountInfo.code === 1000) {
-      
         accountInfo.data.map(v => {
-          if (v.chain !== "OKExChain") {
-            list.push({
-              address: v.address,
-              chain: v.chain,
-              symbol: v.symbol,
-              balance: divisionAndFix(v.balance, v.decimals, 8)
-            })
-          }
+          list.push({
+            address: v.address,
+            chain: v.chain,
+            symbol: v.symbol,
+            balance: divisionAndFix(v.balance, v.decimals, 8)
+          })
         })
-
-        const order = ["NERVE", "NULS", "Ethereum", "BSC", "Heco"]
+        const order = ["NERVE", "NULS", "Ethereum", "BSC", "Heco", "OKExChain"]
         list = list.sort((a, b) => {
           return order.indexOf(a.chain) - order.indexOf(b.chain)
         })
@@ -113,6 +109,7 @@ export default {
 <style lang="less">
 .account-list {
   .content {
+    padding: 0 15px;
     h3 {
       width: 60%;
       margin: 0 auto;
