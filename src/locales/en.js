@@ -10,6 +10,7 @@ const en = {
     header6: "Language",
     header7: "Community",
     header8: "Quit",
+    header9: "Nerve Wallet",
   },
   home: {
     home1: "Import Addresses",
@@ -48,8 +49,8 @@ const en = {
   },
   txList: {
     txList1: "Tansactions",
-    txList2: "Start",
-    txList3: "Receive",
+    txList2: "Source",
+    txList3: "Target",
     txList4: "Processing",
     txList5: "Failed",
     txList6: "Finished",

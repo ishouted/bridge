@@ -560,7 +560,7 @@ export default {
         padding: 1px 5px;
         font-size: 12px;
         font-weight: normal;
-        margin-left: -4px;
+        margin-left: -6px;
         color: #5BCAF9;
         transform: scale(0.8);
         min-width: 50px;

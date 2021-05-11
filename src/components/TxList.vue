@@ -131,7 +131,7 @@
       .top {
         .chain {
           span {
-            font-size: 18px;
+            font-size: 16px;
           }
           i {
             display: inline-block;
@@ -139,6 +139,9 @@
             font-size: 26px;
             color: #99A3C4;
           }
+        }
+        .amount {
+          font-size: 15px;
         }
       }
       .bottom {
