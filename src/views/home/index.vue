@@ -62,7 +62,7 @@ import { supportChainList } from "../../api/util"
 const ethers = require("ethers");
 
 function getAccountList() {
-  return JSON.parse(localStorage.getItem("accountList")) || [];
+  return JSON.parse(sessionStorage.getItem("accountList")) || [];
 }
 function getCurrentAccount(address) {
   const accountList = getAccountList();
@@ -170,14 +170,15 @@ export default {
     //连接metamask
     async connectMetamask() {
       if (!window.ethereum) {
-        this.$message({ message: "未检测到Metamask插件" });
+        this.$message({ message: this.$t("tips.tips3"), type: "warning" });
       } else {
         try {
           this.walletType = "metamask";
           sessionStorage.setItem("walletType", "metamask");
           await this.initMetamask();
         } catch (e) {
-          this.$message({ message: "连接失败, 请稍后重试" });
+          // console.log(e, 222)
+          this.$message({ message: e.message, type: "warning"});
         }
       }
     },
@@ -265,12 +266,13 @@ export default {
     },
     //通过调用metamask签名，派生多链地址
     async derivedAddress() {
+      this.loading = true;
       try {
         if (!this.address) {
           await this.requestAccounts();
         }
         const jsonRpcSigner = this.provider.getSigner();
-        let message = "Derive Accounts";
+        let message = "Derive Multi-chain Address";
         const signature = await jsonRpcSigner.signMessage(message);
         const msgHash = ethers.utils.hashMessage(message);
         const msgHashBytes = ethers.utils.arrayify(msgHash);
@@ -318,11 +320,11 @@ export default {
             NULSPrefix
           );
           const accountList =
-            JSON.parse(localStorage.getItem("accountList")) || [];
+            JSON.parse(sessionStorage.getItem("accountList")) || [];
           accountList.push(account);
           const syncRes = await this.syncAccount(pub, account.address);
           if (syncRes) {
-            localStorage.setItem("accountList", JSON.stringify(accountList));
+            sessionStorage.setItem("accountList", JSON.stringify(accountList));
             // 重新计算fromAddress
             const address = this.address;
             this.address = "";
@@ -331,16 +333,17 @@ export default {
             }, 16)
           } else {
             this.$message({
-              type: "error",
-              message: "网络异常，同步账户失败，请稍后再试",
+              type: "warning",
+              message: this.$t("tips.tips4"),
             });
           }
         }
       } catch (e) {
         console.log(e, 556)
         this.address = "";
-        this.$message({ message: "派生多链地址失败", type: "error" });
+        this.$message({ message: this.$t("tips.tips5"), type: "warning" });
       }
+      this.loading = false;
       // this.showSign = false;
     },
     async syncAccount(pub, accounts) {
@@ -417,7 +420,9 @@ export default {
     text-align: center;
     padding-top: 50px;
     .el-button {
-      padding: 12px 50px;
+      // padding: 12px 50px;
+      border-radius: 10px;
+      padding: 16px 50px;
     }
   }
   .swap-type {
@@ -466,8 +471,8 @@ export default {
     }
 
     .network {
-      color: #515e7b;
-      margin: 0 10px;
+      // color: #515e7b;
+      margin: 0 15px 0 10px;
       width: 66px;
     }
     .to {
@@ -475,7 +480,8 @@ export default {
       .address {
         position: absolute;
         font-size: 14px;
-        left: 142px;
+        left: 147px;
+        color: #515B7D;
       }
     }
     .el-select {
@@ -488,6 +494,7 @@ export default {
         height: auto;
         line-height: initial;
         padding: 0;
+        color: #515B7D;
         // font-size: 14px;
       }
       .el-input__suffix {
@@ -543,8 +550,21 @@ export default {
         height: 30px;
         margin-right: 5px;
       }
+      .asset-info-wrap {
+
+      }
       .origin-chain {
-        font-size: 13px;
+        display: inline-block;
+        border: 1px solid #5BCAF9;
+        border-radius: 2px;
+        padding: 1px 5px;
+        font-size: 12px;
+        font-weight: normal;
+        margin-left: -4px;
+        color: #5BCAF9;
+        transform: scale(0.8);
+        min-width: 50px;
+        text-align: center;
       }
     }
     .el-input-group__prepend {
@@ -603,6 +623,8 @@ export default {
     margin: 20px auto 0;
     .el-button {
       width: 100%;
+      border-radius: 10px;
+      padding: 16px 20px;
     }
   }
 }
@@ -610,13 +632,16 @@ export default {
   .el-dialog {
     max-height: 60vh;
     overflow: auto;
+    .el-dialog__body {
+      padding: 5px 20px 15px;
+    }
   }
   li {
     display: flex;
     // justify-content: space-between;
     align-items: center;
     cursor: pointer;
-    height: 48px;
+    height: 55px;
     &:hover {
       // background-color: rgb(224, 217, 235);
     }

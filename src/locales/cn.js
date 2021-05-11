@@ -10,6 +10,7 @@ const cn = {
     header6: "语言",
     header7: "社区",
     header8: "退出钱包",
+    header9: "Nerve钱包",
   },
   home: {
     home1: "生成多链地址",
@@ -17,7 +18,7 @@ const cn = {
     home3: "可用: ",
     home4: "从",
     home5: "到",
-    home6: "选择资产",
+    home6: "资产(网络)",
     home7: "余额或手续费不足",
     home8: "metamask网络与bridge网络不一致",
     home9: "合约地址: ",
@@ -69,6 +70,10 @@ const cn = {
   tips: {
     tips1: "交易已发出，等待区块确认",
     tips2: "获取闪兑信息失败",
+    tips3: "未检测到Metamask",
+    tips4: "网络异常，同步账户失败，请稍后再试",
+    tips5: "派生多链地址失败",
+    tips6: "交易失败，请稍后再试",
   },
 
   crossStatusType: {

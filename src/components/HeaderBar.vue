@@ -1,7 +1,7 @@
 <template>
   <div class="header">
     <div class="left">
-      <img src="../assets/img/NVT.png" alt="">
+      <img src="../assets/img/logo.svg" alt="">
       NerveBridge
     </div>
     <div class="right" v-if="address">
@@ -26,6 +26,12 @@
               <li @click="toUrl('accounts')">
                 <i class="iconfont icon-wangluozhanghu"></i>
                 <span>{{ $t("header.header2") }}</span>
+              </li>
+              <li>
+                <a :href="walletAddress" target="_blank">
+                  <i class="iconfont icon-qianbao"></i>
+                  <span>{{ $t("header.header9") }}</span>
+                </a>
               </li>
               <li>
                 <a href="https://forms.gle/XFMrcYQLhapYyLaSA" target="_blank">
@@ -63,8 +69,9 @@
               </a>
             </div>
             <div class="language clicks" @click="lang=lang==='cn' ? 'en' : 'cn'">
-              <span class="iconfont icon-yuyan"></span>
-              {{ lang === "cn" ? "EN" : "中文" }}
+              <!-- <span class="iconfont icon-yuyan"> -->
+              <img style="margin: 0 5px 0 10px" src="../assets/img/lang.svg" alt="">
+              <span>{{ lang === "cn" ? "EN" : "中文" }}</span>
             </div>
           </div>
         </div>
@@ -91,6 +98,7 @@
 
 <script>
   import { superLong, copys, networkOrigin, supportChainList } from '@/api/util'
+  import { isBeta } from '../api/util';
 
   export default {
     data() {
@@ -100,6 +108,7 @@
         currentChain: this.$store.state.network,
         lang: localStorage.getItem("lang") || "cn",
         showAccountDialog: false,
+        walletAddress: isBeta ? "http://beta.wallet.nerve.network" : "https://wallet.nerve.network"
       };
     },
     props: {
@@ -283,12 +292,15 @@
         }
         .el-radio-group {
           .el-radio-button {
-            margin: 0 5px 5px 0;
+            margin: 0 10px 15px 0;
             &.is-active .el-radio-button__inner {
               box-shadow: none;
               // border-color: #409EFF;
-               background-color: #409EFF;
+              background-color: #5BCAF9;
               color: #fff;
+            }
+            &:nth-of-type(2n) {
+              margin-right: 0;
             }
           }
           .el-radio-button__inner {
@@ -303,7 +315,7 @@
             background-color: #EBEEF8;
             border: none;
             &:hover {
-              color: #409EFF;
+              color: #5BCAF9;
             }
           }
         }
@@ -329,6 +341,8 @@
         }
         .language {
           cursor: pointer;
+          display: flex;
+          align-items: center;
           &:hover {
             opacity: 0.65;
           }

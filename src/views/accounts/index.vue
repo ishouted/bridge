@@ -51,7 +51,7 @@ export default {
     this.loading = true;
     const address = this.$route.query.address;
     const network = sessionStorage.getItem("network");
-    const accountList = JSON.parse(localStorage.getItem("accountList")) || [];
+    const accountList = JSON.parse(sessionStorage.getItem("accountList")) || [];
     const currentAccount = accountList.filter(item => {
       return item.address[network] === address
     })

@@ -17,13 +17,18 @@ const en = {
     home3: "Avaliable: ",
     home4: "From",
     home5: "To",
-    home6: "Choose Asset",
+    // home6: "Choose Asset",
+    home6: "Asset(network)",
     home7: "Balance or fee is not enough",
     home8: "Metamask network is inconsistent with DApp network",
     home9: "Contract: ",
     home10: "Approve",
     home11: "Speed up",
     home12: "Failed to check flash fee, please try again later",
+    home13: "Swft",
+    home14: "Cross-chain",
+    home15: "跨链交易再各条链上确认时间较长，需数分钟， 请耐心等待",
+    home16: "接收地址",
   },
   public: {
     amount: "Amount",
@@ -65,6 +70,10 @@ const en = {
   tips: {
     tips1: "Transaction has been sent, waiting for block confirmation",
     tips2: "Failed to query swap information",
+    tips3: "Metamask not detected",
+    tips4: "The network is abnormal, the account synchronization failed, please try again later",
+    tips5: "Failed to derive multi-chain address",
+    tips6: "Transfer Failed,pls try again later",
   },
 
   crossStatusType: {

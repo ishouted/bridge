@@ -89,17 +89,10 @@
     <div class="swap-rate">
       1 USDT≈0.00244 ETH
     </div>
-    <div class="fee">
-      <span class="label">{{ $t("public.fee") }}</span>
-      <el-tooltip
-        effect="dark"
-        :content="$t('home.home2')"
-        placement="top-start"
-      >
-        <span class="el-icon-info"></span>
-      </el-tooltip>
+    <fee-wrap>
       <div class="fee-inner">
         <span v-if="!fee">--</span>
+        <!-- <img v-if="!fee" src="../../assets/img/loading.svg" alt="" /> -->
         <div v-else>
           {{ fee }}
           <el-checkbox v-model="speedUpFee" v-if="showSpeedUp">
@@ -107,7 +100,7 @@
           </el-checkbox>
         </div>
       </div>
-    </div>
+    </fee-wrap>
     <div class="btn-wrap tc">
       <el-button type="primary" :disabled="!canNext" @click="next">{{
         $t("public.next")
@@ -127,13 +120,16 @@ import {
   Times,
   supportChainList
 } from "@/api/util";
+import FeeWrap from "@/components/FeeWrap"
 export default {
   data () {
     return {
     }
   },
 
-  components: {},
+  components: {
+    FeeWrap
+  },
 
   watch: {},
 

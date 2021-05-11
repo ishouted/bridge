@@ -87,65 +87,6 @@
   }
 }
 
-.el-table {
-  &:before, .el-table__fixed:before {
-    height: 0;
-  }
-  td {
-    padding: 8px 0 !important;
-  }
-  &.el-table--striped .el-table__body tr.el-table__row--striped td {
-    background: #f3f6fd;
-  }
-  th {
-    background-color: #78a0f3 !important;
-    padding: 8px 0 !important;
-  }
-  .el-table__header-wrapper {
-    .el-table__header {
-      .has-gutter {
-        tr {
-          th {
-            background-color: #78a0f3;
-            border-right: 0;
-            .cell {
-              color: #fff;
-            }
-          }
-        }
-      }
-    }
-  }
-  .el-table__body-wrapper {
-    .el-table__body {
-      tr {
-        td {
-          border-right: 0;
-          padding: 8px 0 !important;
-        }
-      }
-    }
-  }
-
-  .cell {
-    .tab_bn {
-
-    }
-    .tab_line {
-      color: @Dcolour;
-      padding: 0 10px;
-    }
-  }
-}
-
-.el-table--border td, .el-table--border th, .el-table__body-wrapper .el-table--border.is-scrolling-left ~ .el-table__fixed {
-  border: 0 !important;
-}
-
-.el-table td, .el-table th.is-leaf {
-  border: 0 !important;
-}
-
 .el-input {
   .el-input__inner {
     height: 32px;
@@ -187,45 +128,6 @@
     background-color: @Ncolour !important;
   }
 }
-
-/* .el-dialog {
-  background-color: @Bcolour2 !important;
-  .el-dialog__header {
-    border-bottom: @BD1;
-    .el-dialog__headerbtn {
-      top: -15px;
-      right: -15px;
-      background-color: @Bcolour;
-      height: 30px;
-      width: 30px;
-      border-radius: 15px;
-      .el-icon-close {
-        font-size: 20px;
-      }
-    }
-  }
-  .el-dialog__body {
-    padding: 30px 20px 0 20px;
-    span {
-      color: #c0c4cc;
-      font-size: 14px;
-    }
-    p {
-      margin: 20px auto;
-      min-height: 80px;
-      width: 100%;
-      word-wrap: break-word;
-      padding: 10px;
-    }
-  }
-  .el-dialog__footer {
-    text-align: center;
-    .el-button--success {
-      width: 400px;
-    }
-  }
-
-} */
 
 .v-modal, .el-dialog__wrapper {
   position: absolute;
@@ -306,10 +208,15 @@
 }
 
 .el-button {
-  /* &.el-button--primary, &.el-button--success {
+  &.el-button--primary, &.el-button--success {
     background-color: #5BCAF9;
     border-color: #5BCAF9;
-  } */
+    &.is-disabled {
+      opacity: 0.65;
+      background-color: #5BCAF9;
+      border-color: #5BCAF9;
+    }
+  }
 }
 .el-steps {
   .is-finish {

@@ -566,3 +566,18 @@ export const supportChainList = [
   { label: "Heco", value: "Heco", symbol:"HT", ropsten: "0x100", homestead: "0x80" },
   { label: "OKExChain", value: "OKExChain", symbol:"OKT", ropsten: "0x41", homestead: "0x42" }
 ];
+
+export function debounce(fn, delay) {
+  let timer
+  return function() {
+    const args = arguments;
+    if (timer) {
+      clearTimeout(timer);
+    }
+    timer = setTimeout(() => {
+      console.log(this, 112233)
+      fn.apply(this, args);
+      timer = null
+    }, delay)
+  }
+}

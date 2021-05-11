@@ -38,7 +38,6 @@
         placeholder="0.0"
         :value="amount"
         @input="validateAmount"
-        @change="getTransferFee"
       >
         <span
           class="select-asset-btn fw"
@@ -55,7 +54,12 @@
               @error="replaceImg"
               alt=""
             />
-            {{ chooseAsset.symbol }}<span class="origin-chain">{{ "(" + chooseAsset.registerChain + ")" }}</span>
+            <span class="asset-info-wrap">
+              {{ chooseAsset.symbol }}
+              <br/>
+              <span class="origin-chain">{{ chooseAsset.registerChain }}</span>
+            </span>
+            <!-- {{ chooseAsset.symbol }}<span class="origin-chain">{{ "(" + chooseAsset.registerChain + ")" }}</span> -->
             <!-- {{ chooseAsset.symbol + "(" + chooseAsset.registerChain + ")" }} -->
             <!-- </span> -->
           </template>
@@ -69,18 +73,13 @@
         amountMsg
       }}</span>
     </div>
-    <div class="fee">
-      <span class="label">{{ $t("public.fee") }}</span>
-      <el-tooltip
-        effect="dark"
-        :content="$t('home.home2')"
-        placement="top-start"
-      >
-        <span class="el-icon-info"></span>
-      </el-tooltip>
+    <fee-wrap>
       <div class="fee-inner">
-        <span v-if="!fee">--</span>
-        <!-- <img v-if="!fee" src="../../assets/img/loading.svg" alt="" /> -->
+        
+        <template v-if="!fee">
+          <span v-if="!feeLoading">--</span>
+          <img v-else src="../../assets/img/loading.svg" alt="" />
+        </template>
         <div v-else>
           {{ fee }}
           <el-checkbox v-model="speedUpFee" v-if="showSpeedUp">
@@ -88,12 +87,37 @@
           </el-checkbox>
         </div>
       </div>
-    </div>
+    </fee-wrap>
+    <!-- <div class="fee">
+      <span class="label">{{ $t("public.fee") }}</span>
+      
+        <el-tooltip
+          effect="dark"
+          :content="$t('home.home2')"
+          value="1"
+          :append-to-body="false"
+          ref="mypop"
+        >
+          <span class="el-icon-info"></span>
+        </el-tooltip>
+        <span ref="here">
+        </span>
+      
+      <div class="fee-inner">
+        <span v-if="!fee">--</span>
+        <div v-else>
+          {{ fee }}
+          <el-checkbox v-model="speedUpFee" v-if="showSpeedUp">
+            {{ $t("home.home11") }}
+          </el-checkbox>
+        </div>
+      </div>
+    </div> -->
     <div class="btn-wrap tc">
       <el-button type="primary" v-if="crossInAuth" :disabled="!!fromNetworkMsg" @click="approveERC20">{{
         $t("home.home10")
       }}</el-button>
-      <el-button type="primary" v-else :disabled="!canNext" @click="next">{{
+      <el-button type="primary" v-else :disabled="!canNext" @click="next" :loading="btnLoading">{{
         $t("public.next")
       }}</el-button>
     </div>
@@ -102,6 +126,7 @@
       :visible.sync="assetListModal"
       :modal-append-to-body="false"
       width="80%"
+      top="10vh"
       class="assets-list-dialog"
     >
       <ul v-if="assetsList.length">
@@ -139,15 +164,17 @@ import {
   timesDecimals,
   getLogoSrc,
   Times,
-  supportChainList
+  supportChainList,
+  debounce
 } from "@/api/util";
 import { ETransfer, getSymbolUSD, swapScale, swapSymbolConfig, crossFee } from "@/api/api";
 import { getContractCallData } from "@/api/nulsContractValidate";
 import defaultIcon from "@/assets/img/commonIcon.png";
+import FeeWrap from "@/components/FeeWrap"
 
 
 function getAccountList() {
-  return JSON.parse(localStorage.getItem("accountList")) || [];
+  return JSON.parse(sessionStorage.getItem("accountList")) || [];
 }
 function getCurrentAccount(address) {
   const accountList = getAccountList();
@@ -179,6 +206,7 @@ export default {
     this.needExtraFee = false; //nvt不足，需要额外转入一笔手续费
     this.extraFee = ""; //用于闪兑nvt的异构链主资产数量
     this.NULSContract = false; //是否是nuls的合约资产跨链
+    this.getFeeDebounce = debounce(this.getTransferFee, 1000)
     return {
       toNetwork: "",
       assetListModal: false,
@@ -187,10 +215,12 @@ export default {
       amount: "", //跨链数量
       available: 0,
       fee: "",
+      feeLoading: false,
       fromNetworkMsg: "", //from网络与插件网络不一致
       amountMsg: "", //转账数量验证失败信息
       crossInAuth: false, //异构链转入nerve是否需要授权
       speedUpFee: false, //是否加速
+      btnLoading: false
     }
   },
 
@@ -201,6 +231,9 @@ export default {
     fromChainId: String,
     walletType: String,
     fromAddress: String
+  },
+  components: {
+    FeeWrap
   },
   watch: {
     address: {
@@ -251,7 +284,7 @@ export default {
       if (
         !this.toNetwork ||
         !this.chooseAsset ||
-        !this.amount ||
+        !Number(this.amount) ||
         !this.fee ||
         this.amountMsg ||
         this.fromNetworkMsg
@@ -385,12 +418,20 @@ export default {
       if (patrn.exec(val)|| val==="") {
         this.amount = val
       }
+
+      this.getFeeDebounce();
+      // this.getTransferFee()
     },
     // 计算交易手续费
     async getTransferFee() {
       try {
+        if (!this.chooseAsset || !Number(this.amount)) {
+          this.fee = "";
+          this.feeLoading = false;
+          return;
+        }
         this.fee = "";
-        if (!this.chooseAsset || !this.amount) return;
+        this.feeLoading = true;
         const nerveToNulsFee = crossFee + "NVT" + "+" + crossFee + "NULS";
         const nulsToNerveFee = crossFee + "NULS";
 
@@ -492,6 +533,7 @@ export default {
       } catch (e) {
         console.error(e, "计算手续费失败")
       }
+      this.feeLoading = false;
     },
     //nuls合约资产跨链 计算手续费&其他信息
     async getContractCallData() {
@@ -851,6 +893,7 @@ export default {
     },
     // 验证主资产余额是否够转账,手续费
     async checkAmountFee() {
+      this.btnLoading = true;
       let flag = true;
       // 验证可用余额
       if (Minus(this.amount, this.available) > 0) flag = false;
@@ -920,6 +963,7 @@ export default {
         }
       }
       this.amountMsg = flag ? "" : this.$t("home.home7");
+      this.btnLoading = false;
     },
     // 验证主资产是否够手续费/手续费+转账数量
     checkFee(fee, isMainAsset) {

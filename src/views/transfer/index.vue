@@ -170,7 +170,7 @@ export default {
         this.runTransfer();
       } catch (e) {
         console.log(e, "===组装交易失败===");
-        this.$message({ message: "组装交易失败，请稍后再试", type: "warning" });
+        this.$message({ message: this.$t("tips.tips5"), type: "warning" });
       }
       this.loading = false;
     },
@@ -386,7 +386,7 @@ export default {
         this.updateTx(updateTx)
       } catch (e) {
         console.error("error: " + e);
-        this.$message({ message: "交易失败，请稍后再试", type: "warning" });
+        this.$message({ message: this.$t("tips.tips6"), type: "warning" });
         setTimeout(() => {
           this.$router.push("/")
         }, 3000)
