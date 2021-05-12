@@ -170,7 +170,7 @@ export default {
         this.runTransfer();
       } catch (e) {
         console.log(e, "===组装交易失败===");
-        this.$message({ message: this.$t("tips.tips5"), type: "warning" });
+        this.$message({ message: this.$t("tips.tips6"), type: "warning" });
       }
       this.loading = false;
     },
