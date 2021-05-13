@@ -35,7 +35,7 @@ import { NTransfer, ETransfer } from "@/api/api";
 import { MAIN_INFO, NULS_INFO } from "@/config"
 import BufferReader from "nerve-sdk-js/lib/utils/bufferreader";
 import txs from "nerve-sdk-js/lib/model/txs";
-
+import { genID } from "@/api/util"
 
 function sleep(time) {
   return new Promise((resolve) => setTimeout(resolve, time));
@@ -47,6 +47,7 @@ export default {
       loading: true,
       stepList: [],
       currentStep: 1,
+      destroyed: false
     };
   },
 
@@ -75,6 +76,7 @@ export default {
   },
   destroyed() {
     sessionStorage.removeItem("transferInfo");
+    this.destroyed = true;
   },
 
   methods: {
@@ -344,12 +346,13 @@ export default {
           crossTxHex: ""
         }
         for (let i = 0; i < this.stepList.length; i++) {
+          if (this.destroyed) break; // 防止页面返回后继续执行异步循环转账，签名
           const step = this.stepList[i];
           if (!step.done) {
             //  调用metamask转账/签名hash
             let res = await step.fn();
-            console.log(res, 123);
-            // 广播nuls转入nerve的交易
+            // console.log(res, 123);
+            // 广播nuls转入nerve的交易, 转账交易、转入闪兑手续费交易
             if (step.needBroadcast) {
               res = await this.broadcastHex(res)
             }
@@ -386,6 +389,7 @@ export default {
         this.updateTx(updateTx)
       } catch (e) {
         console.error("error: " + e);
+        if (this.destroyed) return;
         this.$message({ message: this.$t("tips.tips6"), type: "warning" });
         setTimeout(() => {
           this.$router.push("/")
@@ -397,6 +401,7 @@ export default {
       const url = this.sessionInfo.fromChain === "NERVE" ? MAIN_INFO.rpc : NULS_INFO.rpc;
       const chainId = this.sessionInfo.fromChain === "NERVE" ? MAIN_INFO.chainId : NULS_INFO.chainId;
       const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
+      if (this.destroyed) return
       if (res.result && res.result.hash) {
         return { hash: res.result.hash };
       } else {
@@ -405,10 +410,13 @@ export default {
     },
     // 将交易txHash及其他基本信息发给后台已记录该交易
     async broadcast(data) {
+      this.transferID = genID()
+      data = { seed: this.transferID, ...data }
       const res = await this.$request({
         url: "/tx/cross/bridge/transfer",
         data: data
       });
+      if (this.destroyed) return
       if (res.code !== 1000) {
         throw "交易失败"
       }
@@ -417,10 +425,12 @@ export default {
      * 更新广播交易
      */
     async updateTx(data) {
+      data = { seed: this.transferID, ...data }
       const res = await this.$request({
         url: "/tx/bridge/update/tx",
         data: data
       });
+      if (this.destroyed) return
       if (res.code === 1000) {
         this.$message({
           message: this.$t("tips.tips1"),

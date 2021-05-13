@@ -575,9 +575,19 @@ export function debounce(fn, delay) {
       clearTimeout(timer);
     }
     timer = setTimeout(() => {
-      console.log(this, 112233)
       fn.apply(this, args);
       timer = null
     }, delay)
   }
+}
+
+export function genID() {
+  return (
+    Date.now() +
+    Number(
+      Math.random()
+        .toString()
+        .split(".")[1]
+    )
+  ).toString(36);
 }

@@ -32,7 +32,25 @@ export function post(url, methodName, data = []) {
 
 export async function request(params) {
   const { url, method = "post", data } = params;
-  const baseUrl = config.API_URL
+  const baseUrl = config.BRIDGE_API_URL
+  const language = localStorage.getItem("lang") === "cn" ? "CHS" : "EN";
+  const newData = method === "post" ? {data: {language, ...data}} : {params: {language, ...data}};
+  return new Promise((resolve, reject) => {
+    //console.log(newData);
+    axios({url: baseUrl + url, method: method, ...newData}).then(
+      response => {
+        resolve(response.data);
+      },
+      err => {
+        reject(err);
+      }
+    );
+  });
+}
+
+export async function rPost(params) {
+  const { url, method = "post", data } = params;
+  const baseUrl = config.SWFT_API_URL
   const language = localStorage.getItem("lang") === "cn" ? "CHS" : "EN";
   const newData = method === "post" ? {data: {language, ...data}} : {params: {language, ...data}};
   return new Promise((resolve, reject) => {

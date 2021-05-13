@@ -22,10 +22,10 @@
               :value="item.value">
             </el-option>
           </el-select>
-          <el-button @click="getTxList">{{ $t("public.filter") }}</el-button>
+          <el-button @click="searchList">{{ $t("public.filter") }}</el-button>
         </div>
         <tx-list :list="txList" @toDetail="toTxDetail" :total="txTotal" :loading="txLoading"
-                  @loadMoreTx="loadMoreTx">
+                  @loadMoreTx="getTxList">
         </tx-list>
       </div>
     </div>
@@ -53,7 +53,8 @@ export default {
       txLoading: false,
       txList: [],
       txTotal: 5,
-      
+      pageNumber: 1,
+      pageSize: 10
     }
   },
 
@@ -83,23 +84,37 @@ export default {
       return superLong(str, len);
     },
     async getTxList() {
-      this.loading = true;
-      this.txList = [];
+      this.txLoading = true;
+      if ((this.pageNumber - 1) * this.pageSize > this.txTotal) {
+        this.txLoading = false;
+        return;
+      }
+      // this.txList = [];
       const addressObj = this.currentAccount.address;
       const data = {
         fromChain: this.fromChain,
         toChain: this.toChain,
-        addressList: [addressObj.BSC, addressObj.NERVE, addressObj.NULS]
+        addressList: [addressObj.BSC, addressObj.NERVE, addressObj.NULS],
+        pageSize: this.pageSize,
+        pageNumber: this.pageNumber++
       }
       const res = await this.$request({
         url: "/tx/bridgeTx/list",
         data
       });
       if (res.code === 1000) {
-        res.data.map(v=> v.createTime = v.createTime.substring(5))
-        this.txList = res.data
+        res.data.records.map(v=> v.createTime = v.createTime.substring(5))
+        this.txList = res.data.records;
+        this.txTotal = res.data.total;
+        this.txLoading = false;
       }
       this.loading = false;
+    },
+    searchList() {
+      this.pageNumber = 1;
+      this.txTotal = 0;
+      this.txList = [];
+      this.getTxList();
     },
     toTxDetail(txData) {
       this.$router.push({
@@ -111,6 +126,7 @@ export default {
       // console.log(456)
     },
     loadMoreTx() {
+      this.getTxList();
       // console.log(123)
     }
   }

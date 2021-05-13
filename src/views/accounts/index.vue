@@ -47,41 +47,51 @@ export default {
 
   created() {},
 
-  async mounted() {
-    this.loading = true;
-    const address = this.$route.query.address;
-    const network = sessionStorage.getItem("network");
-    const accountList = JSON.parse(sessionStorage.getItem("accountList")) || [];
-    const currentAccount = accountList.filter(item => {
-      return item.address[network] === address
+  mounted() {
+    this.getBalance();
+    const timer = setInterval(() => {
+      this.getBalance();
+    }, 10000)
+    this.$once("hook:beforeDestroy", () => {
+      clearInterval(timer)
     })
-    let list = []
-    if (currentAccount[0]) {
-      const pubKey = currentAccount[0].pub;
-      const accountInfo = await this.$request({
-        url: "/wallet/chain/main",
-        data: { pubKey }
-      })
-      if (accountInfo.code === 1000) {
-        accountInfo.data.map(v => {
-          list.push({
-            address: v.address,
-            chain: v.chain,
-            symbol: v.symbol,
-            balance: divisionAndFix(v.balance, v.decimals, 8)
-          })
-        })
-        const order = ["NERVE", "NULS", "Ethereum", "BSC", "Heco", "OKExChain"]
-        list = list.sort((a, b) => {
-          return order.indexOf(a.chain) - order.indexOf(b.chain)
-        })
-      }
-    }
-    this.loading = false;
-    this.accountList = list
+    
   },
 
   methods: {
+    async getBalance() {
+      // this.loading = true;
+      const address = this.$route.query.address;
+      const network = sessionStorage.getItem("network");
+      const accountList = JSON.parse(sessionStorage.getItem("accountList")) || [];
+      const currentAccount = accountList.filter(item => {
+        return item.address[network] === address
+      })
+      let list = []
+      if (currentAccount[0]) {
+        const pubKey = currentAccount[0].pub;
+        const accountInfo = await this.$request({
+          url: "/wallet/chain/main",
+          data: { pubKey }
+        })
+        if (accountInfo.code === 1000) {
+          accountInfo.data.map(v => {
+            list.push({
+              address: v.address,
+              chain: v.chain,
+              symbol: v.symbol,
+              balance: divisionAndFix(v.balance, v.decimals, 8)
+            })
+          })
+          const order = ["NERVE", "NULS", "Ethereum", "BSC", "Heco", "OKExChain"]
+          list = list.sort((a, b) => {
+            return order.indexOf(a.chain) - order.indexOf(b.chain)
+          })
+        }
+      }
+      this.loading = false;
+      this.accountList = list
+    },
     superLong(str, len = 5) {
       return superLong(str, len)
     },

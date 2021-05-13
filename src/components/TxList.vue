@@ -1,7 +1,7 @@
 <template>
   <div class="tx-list">
     <ul class="list" v-infinite-scroll="load" infinite-scroll-disabled="disabled">
-      <li v-for="(item,index) in list" :key="index" @click="handleClick(item)">
+      <li v-for="(item,index) in oldList" :key="index" @click="handleClick(item)">
         <div class="top">
           <div class="chain">
             <span>{{item.fromChain }}</span>
@@ -49,7 +49,7 @@
     },
     computed: {
       noMore() {
-        return this.list.length && this.list.length >= this.total;
+        return this.oldList.length && this.oldList.length >= this.total;
       },
       disabled() {
         return this.loading || this.noMore;
@@ -57,12 +57,11 @@
     },
     watch: {
       "list": function (val) {
-        //console.log(val);
         if (val.length !== 0) {
           for (let item of val) {
             item.amount = tofix(item.amount, 6, 1)
           }
-          if (this.oldList.length !== 0 && this.oldList[0].chainInfo === val[0].chainInfo) {
+          if (this.oldList.length !== 0) {
             this.oldList = [...this.oldList, ...val];
           } else {
             this.oldList = val;
@@ -70,7 +69,7 @@
         }else{
           this.oldList = [];
         }
-        //console.log(this.oldList);
+        // console.log(this.oldList);
       }
     },
     methods: {

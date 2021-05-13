@@ -117,7 +117,7 @@
       <el-button type="primary" v-if="crossInAuth" :disabled="!!fromNetworkMsg" @click="approveERC20">{{
         $t("home.home10")
       }}</el-button>
-      <el-button type="primary" v-else :disabled="!canNext" @click="next" :loading="btnLoading">{{
+      <el-button type="primary" v-else :disabled="!canNext" @click="next">{{
         $t("public.next")
       }}</el-button>
     </div>
@@ -207,6 +207,7 @@ export default {
     this.extraFee = ""; //用于闪兑nvt的异构链主资产数量
     this.NULSContract = false; //是否是nuls的合约资产跨链
     this.getFeeDebounce = debounce(this.getTransferFee, 1000)
+    this.getAllowanceTimer = null; // 查询授权额度定时器
     return {
       toNetwork: "",
       assetListModal: false,
@@ -220,7 +221,6 @@ export default {
       amountMsg: "", //转账数量验证失败信息
       crossInAuth: false, //异构链转入nerve是否需要授权
       speedUpFee: false, //是否加速
-      btnLoading: false
     }
   },
 
@@ -341,6 +341,7 @@ export default {
       this.needExtraFee = false;
       this.extraFee = "";
       this.NULSContract = false;
+      this.clearGetAllowanceTimer();
     },
     // 查询可跨链资产
     async getCanCrossAssets() {
@@ -360,10 +361,10 @@ export default {
       this.amount = "";
       this.chooseAsset = asset;
       this.assetListModal = false;
-      // console.log(asset)
+      this.clearGetAllowanceTimer();
       //assset.assetId为0 则为异构链上token资产
       if (asset.assetId === 0 && this.fromNetwork !== "NULS") {
-        this.checkCrossInAuthStatus(asset);
+        this.checkCrossInAuthStatus();
       }
       const params = {
         chain: this.fromNetwork,
@@ -398,6 +399,9 @@ export default {
         this.fromAddress
       );
       this.crossInAuth = needAuth;
+      if (!needAuth && this.getAllowanceTimer) {
+        this.clearGetAllowanceTimer();
+      }
     },
     async getAssetInfo(params) {
       const res = await this.$request({
@@ -529,7 +533,7 @@ export default {
             }
           }
         }
-        this.checkAmountFee();
+        await this.checkAmountFee();
       } catch (e) {
         console.error(e, "计算手续费失败")
       }
@@ -550,7 +554,7 @@ export default {
         this.chooseAsset.decimals
       );
       if (res.success) {
-        console.log(res, 55);
+        // console.log(res, 55);
         // this.fee = res.data.fee;
         this.NULSContractGas = res.data.gas;
         this.NULSContractTxData = res.data.contractCallData;
@@ -646,7 +650,7 @@ export default {
         data: params
       });
       if (res.code === 1000 && res.data.data) {
-        console.log(res, 55)
+        // console.log(res, 55)
         // return res.data.result
         // return divisionDecimals(res.data.data, swapAssetInfo.decimal)
         return res.data.data.quantityPlain
@@ -679,9 +683,20 @@ export default {
           type: "success",
           duration: 2000,
         });
+        this.setGetAllowanceTimer();
       } else {
         this.$message({ message: JSON.stringify(res), type: "warning", duration: 2000 });
       }
+    },
+    setGetAllowanceTimer() {
+      this.getAllowanceTimer = setInterval(() => {
+        this.checkCrossInAuthStatus();
+      }, 3000)
+    },
+    clearGetAllowanceTimer() {
+      if (!this.getAllowanceTimer) return;
+      clearInterval(this.getAllowanceTimer);
+      this.getAllowanceTimer = null;
     },
     splitFeeSymbol(str) {
       return {
@@ -893,7 +908,6 @@ export default {
     },
     // 验证主资产余额是否够转账,手续费
     async checkAmountFee() {
-      this.btnLoading = true;
       let flag = true;
       // 验证可用余额
       if (Minus(this.amount, this.available) > 0) flag = false;
@@ -963,7 +977,6 @@ export default {
         }
       }
       this.amountMsg = flag ? "" : this.$t("home.home7");
-      this.btnLoading = false;
     },
     // 验证主资产是否够手续费/手续费+转账数量
     checkFee(fee, isMainAsset) {

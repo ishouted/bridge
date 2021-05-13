@@ -1,7 +1,6 @@
 import axios from 'axios'
 import {post} from './https'
 import {chainID, main_info, Plus, Minus} from './util'
-import {API_URL} from '@/config.js'
 
 /**
  * 判断是否为主网
@@ -545,34 +544,3 @@ export async function commitData(txHexKey, signDataKey, address, assembleHex) {
     });
 }
 
-/**
- * @disc: 获取退出节点/退出保证金对应的追加保证金交易列表
- * @params: agentHash 节点hash
- * @params: reduceAmount 退出金额
- * @params: quitAll  是否全部退出 0：部分 1：全部
- * @date: 2020-05-15 16:03
- * @author: Wave
- */
-export async function getReduceNonceList(agentHash, reduceAmount, quitAll) {
-  let url = API_URL;
-  let data = [chainID(), agentHash, reduceAmount, quitAll];
-  const params = {
-    "jsonrpc": "2.0",
-    "method": 'getReduceNonceList',
-    "params": data,
-    "id": Math.floor(Math.random() * 1000)
-  };
-  try {
-    let res = await axios.post(url, params);
-    //console.log(res.data);
-    if (res.data.hasOwnProperty('result')) {
-      return {success: true, data: res.data.result}
-    } else {
-      return {success: false, data: res.data}
-    }
-  }
-  catch (err) {
-    return {success: false, data: err}
-  }
-
-}

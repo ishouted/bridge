@@ -42,10 +42,17 @@ module.exports = {
     https: false, // https:{type:Boolean}
     open: true, //配置自动启动浏览器
     proxy: {// 配置跨域处理
-      "/nabox-api": {
-        // target: "http://nabox_api.zhoulijun.top",
-        // target: "http://192.168.1.132:8083",
-        target: "http://beta.bridge.nerve.network",
+      "/bridge-api": {
+        // target: "http://192.168.1.132:8083", // 周维
+        target: "http://192.168.1.101:8080", // 李超
+        // target: "http://beta.bridge.nerve.network",
+        // target: "https://bridge.nerve.network",
+        changeOrigin: true,  // 是否跨域
+      },
+      "/api": {
+        // target: "http://192.168.1.132:8083", // 周维
+        target: "http://192.168.1.101:8080", // 李超
+        // target: "http://beta.bridge.nerve.network",
         // target: "https://bridge.nerve.network",
         changeOrigin: true,  // 是否跨域
       }
