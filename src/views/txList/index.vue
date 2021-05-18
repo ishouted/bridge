@@ -35,17 +35,11 @@
 <script>
 import BackBar from '@/components/BackBar'
 import TxList from "@/components/TxList";
-import { superLong } from '@/api/util'
+import { superLong, supportChainList } from '@/api/util'
 
 export default {
   data () {
-    this.chainList = [
-      { label: "NERVE", value: "NERVE" },
-      { label: "NULS", value: "NULS" },
-      { label: "Ethereum", value: "Ethereum" },
-      { label: "BSC", value: "BSC" },
-      { label: "Heco", value: "Heco" },
-    ]
+    this.chainList = supportChainList
     return {
       loading: true,
       fromChain: "", //发起网络
