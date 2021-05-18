@@ -21,13 +21,22 @@
         }}</el-button>
       </div>
       <div v-else>
-        <!-- <div class="swap-type">
+        <div class="swap-type">
           <el-radio-group  v-model="swapType" size="medium">
             <el-radio-button label="swap">{{ $t("home.home13") }}</el-radio-button>
             <el-radio-button label="nerve">{{ $t("home.home14") }}</el-radio-button>
           </el-radio-group>
         </div>
-        <swft-swap v-show="swapType==='swap'"></swft-swap>
+        <swft-swap
+          v-show="swapType==='swap'"
+          :address="address"
+          :walletType="walletType"
+          :provider="provider"
+          :fromNetwork="fromNetwork"
+          :fromChainId="fromChainId"
+          :fromAddress="fromAddress"
+        >
+        </swft-swap>
         <nerve-swap
           v-show="swapType==='nerve'"
           :address="address"
@@ -36,15 +45,15 @@
           :fromNetwork="fromNetwork"
           :fromChainId="fromChainId"
           :fromAddress="fromAddress"
-        ></nerve-swap> -->
-        <nerve-swap
+        ></nerve-swap>
+        <!-- <nerve-swap
           :address="address"
           :walletType="walletType"
           :provider="provider"
           :fromNetwork="fromNetwork"
           :fromChainId="fromChainId"
           :fromAddress="fromAddress"
-        ></nerve-swap>
+        ></nerve-swap> -->
       </div>
     </div>
   </div>
@@ -339,7 +348,7 @@ export default {
           }
         }
       } catch (e) {
-        console.log(e, 556)
+        // console.log(e, 556)
         this.address = "";
         this.$message({ message: this.$t("tips.tips5"), type: "warning" });
       }
@@ -545,14 +554,12 @@ export default {
       &:hover {
         background-color: rgb(224, 217, 235);
       }
-      img {
+      /* img {
         width: 30px;
         height: 30px;
         margin-right: 5px;
       }
-      .asset-info-wrap {
-
-      }
+      
       .origin-chain {
         display: inline-block;
         border: 1px solid #5BCAF9;
@@ -565,7 +572,7 @@ export default {
         transform: scale(0.8);
         min-width: 50px;
         text-align: center;
-      }
+      } */
     }
     .el-input-group__prepend {
       .el-select .el-input {
@@ -626,6 +633,28 @@ export default {
       border-radius: 10px;
       padding: 16px 20px;
     }
+  }
+  .asset-info-wrap {
+    display: flex;
+    flex-direction: column;
+  }
+  .logo-img {
+    width: 30px;
+    height: 30px;
+    margin-right: 5px;
+  }
+  .origin-chain {
+    display: inline-block;
+    border: 1px solid #5BCAF9;
+    border-radius: 2px;
+    padding: 1px 5px;
+    font-size: 12px;
+    font-weight: normal;
+    // margin-left: -6px;
+    color: #5BCAF9;
+    transform: translateX(-10%) scale(0.8);
+    min-width: 50px;
+    text-align: center;
   }
 }
 .assets-list-dialog {

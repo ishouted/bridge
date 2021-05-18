@@ -39,7 +39,7 @@
         :value="amount"
         @input="validateAmount"
       >
-        <span
+        <div
           class="select-asset-btn fw"
           slot="prepend"
           @click="assetListModal = true"
@@ -50,21 +50,21 @@
           <template v-else>
             <!-- <span> -->
             <img
+              class="logo-img"
               :src="getLogoSrc(chooseAsset.symbol)"
               @error="replaceImg"
               alt=""
             />
-            <span class="asset-info-wrap">
-              {{ chooseAsset.symbol }}
-              <br/>
+            <div class="asset-info-wrap">
+              <span>{{ chooseAsset.symbol }}</span>
               <span class="origin-chain">{{ chooseAsset.registerChain }}</span>
-            </span>
+            </div>
             <!-- {{ chooseAsset.symbol }}<span class="origin-chain">{{ "(" + chooseAsset.registerChain + ")" }}</span> -->
             <!-- {{ chooseAsset.symbol + "(" + chooseAsset.registerChain + ")" }} -->
             <!-- </span> -->
           </template>
           <i class="el-icon-caret-bottom fw"></i>
-        </span>
+        </div>
         <!-- <el-button slot="append">MAX</el-button> -->
       </el-input>
     </div>

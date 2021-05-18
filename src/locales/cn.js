@@ -29,6 +29,10 @@ const cn = {
     home14: "Cross-chain",
     home15: "跨链交易再各条链上确认时间较长，需数分钟， 请耐心等待",
     home16: "接收地址",
+    home17: "发送",
+    home18: "获得",
+    home19: "订单确认",
+    home20: "确认",
   },
   public: {
     amount: "数量",
@@ -74,6 +78,10 @@ const cn = {
     tips4: "网络异常，同步账户失败，请稍后再试",
     tips5: "派生多链地址失败",
     tips6: "交易失败，请稍后再试",
+    tips7: "查询余额失败",
+    tips8: "最小兑换数量: ",
+    tips9: "最大兑换数量: ",
+    tips10: "创建订单失败",
   },
 
   crossStatusType: {

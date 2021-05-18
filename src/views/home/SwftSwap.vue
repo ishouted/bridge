@@ -16,26 +16,33 @@
         <span
           class="select-asset-btn fw"
           slot="prepend"
-          @click="assetListModal = true"
+          @click="showDialog('from')"
         >
-          <template v-if="!chooseAsset">
+          <template v-if="!chooseFromAsset">
             <span>{{ $t("home.home6") }}</span>
           </template>
           <template v-else>
             <!-- <span> -->
             <img
-              :src="getLogoSrc(chooseAsset.symbol)"
+              class="logo-img"
+              :src="getLogoSrc(chooseFromAsset.symbol)"
               @error="replaceImg"
               alt=""
             />
-            {{ chooseAsset.symbol }}<span class="origin-chain">{{ "(" + chooseAsset.registerChain + ")" }}</span>
-            <!-- {{ chooseAsset.symbol + "(" + chooseAsset.registerChain + ")" }} -->
-            <!-- </span> -->
+            <div class="asset-info-wrap">
+              <span>{{ chooseFromAsset.symbol }}</span>
+              <span class="origin-chain">{{ chooseFromAsset.chain }}</span>
+            </div>
           </template>
           <i class="el-icon-caret-bottom fw"></i>
         </span>
-        <el-button slot="append">MAX</el-button>
+        <el-button slot="append" @click="maxAmount">MAX</el-button>
       </el-input>
+    </div>
+    <div class="msg-wrap">
+      <span class="from-validate-msg" v-show="amountMsg || fromNetworkMsg">{{
+        amountMsg || fromNetworkMsg
+      }}</span>
     </div>
     <div class="swap-icon">
       <span>
@@ -51,65 +58,161 @@
         class="amount-inner"
         placeholder="--"
         disabled
-        :value="amount"
+        :value="toAmount"
       >
-        <span
+        <div
           class="select-asset-btn fw"
           slot="prepend"
-          @click="assetListModal = true"
+          @click="showDialog('to')"
         >
-          <template v-if="!chooseAsset">
+          <template v-if="!chooseToAsset">
             <span>{{ $t("home.home6") }}</span>
           </template>
           <template v-else>
             <!-- <span> -->
             <img
-              :src="getLogoSrc(chooseAsset.symbol)"
+              class="logo-img"
+              :src="getLogoSrc(chooseToAsset.symbol)"
               @error="replaceImg"
               alt=""
             />
-            {{ chooseAsset.symbol }}<span class="origin-chain">{{ "(" + chooseAsset.registerChain + ")" }}</span>
-            <!-- {{ chooseAsset.symbol + "(" + chooseAsset.registerChain + ")" }} -->
-            <!-- </span> -->
+            <div class="asset-info-wrap">
+              <span>{{ chooseToAsset.symbol }}</span>
+              <span class="origin-chain">{{ chooseToAsset.chain }}</span>
+            </div>
           </template>
           <i class="el-icon-caret-bottom fw"></i>
-        </span>
-        <!-- <el-button slot="append">MAX</el-button> -->
+        </div>
       </el-input>
     </div>
     <div class="to-address">
       <span class="label">{{ $t("home.home16") }}</span>
       <div class="address-inner">
         <span class="network">
-          {{ fromNetwork }}
+          {{ toNetwork }}
         </span>
-        {{ superLong(fromAddress) }}
+        {{ superLong(toAddress) }}
       </div>
     </div>
-    <div class="swap-rate">
-      1 USDT≈0.00244 ETH
+    <div class="swap-rate" v-if="swapRate">
+
+      1 {{chooseFromAsset.symbol}}≈{{swapRate}} {{chooseToAsset.symbol}}
     </div>
-    <fee-wrap>
-      <div class="fee-inner">
-        <span v-if="!fee">--</span>
-        <!-- <img v-if="!fee" src="../../assets/img/loading.svg" alt="" /> -->
-        <div v-else>
-          {{ fee }}
-          <el-checkbox v-model="speedUpFee" v-if="showSpeedUp">
-            {{ $t("home.home11") }}
-          </el-checkbox>
+    <div class="btn-wrap tc">
+      <el-button type="primary" :disabled="!canNext" @click="next">
+        {{ $t("public.next") }}
+      </el-button>
+    </div>
+    <el-dialog
+      :title="$t('home.home6')"
+      :visible.sync="assetListModal"
+      :modal-append-to-body="false"
+      width="80%"
+      top="10vh"
+      class="assets-list-dialog"
+    >
+      <ul v-if="dialogCoinList.length">
+        <li
+          v-for="item in dialogCoinList"
+          :key="item.coinId"
+          @click="selectAsset(item)"
+          :class="checkActive(item)"
+        >
+          <div class="logo-wrap">
+            <img :src="getLogoSrc(item.symbol)" @error="replaceImg" alt="" />
+          </div>
+          <div class="asset-info">
+            <p>{{ item.symbol }}<span>{{"(" + item.chain + ")"}}</span></p>
+            <span
+              v-if="item.contact && item.contact.length > 20"
+            >
+              {{ $t("home.home9") + superLong(item.contact) }}
+            </span>
+          </div>
+        </li>
+      </ul>
+      <p class="no-data" v-else>No Data</p>
+    </el-dialog>
+    <el-dialog
+      :title="$t('home.home19')"
+      :visible.sync="confirmModal"
+      :modal-append-to-body="false"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      width="80%"
+      top="10vh"
+      class="confirm-dialog"
+    >
+      <div v-if="canNext" v-loading="feeLoading">
+        <div class="wrap">
+          <span class="label">{{ $t("home.home17") }}</span>
+          <div class="inner">
+            <span class="left">
+              {{ amount }}
+            </span>
+            <div class="right">
+              <img
+                class="logo-img"
+                :src="getLogoSrc(chooseFromAsset.symbol)"
+                @error="replaceImg"
+                alt=""
+              />
+              <div class="asset-info-wrap">
+                <span>{{ chooseFromAsset.symbol }}</span>
+                <span class="origin-chain">{{ chooseFromAsset.chain }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wrap">
+          <span class="label">{{ $t("home.home18") }}</span>
+          <div class="inner">
+            <span class="left">
+              {{ toAmount }}
+            </span>
+            <div class="right">
+              <img
+                class="logo-img"
+                :src="getLogoSrc(chooseToAsset.symbol)"
+                @error="replaceImg"
+                alt=""
+              />
+              <div class="asset-info-wrap">
+                <span>{{ chooseToAsset.symbol }}</span>
+                <span class="origin-chain">{{ chooseToAsset.chain }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wrap">
+          <span class="label">{{ $t("home.home16") }}</span>
+          <div class="inner">
+            <span class="left">
+              {{ toNetwork }} 
+              <span>{{ superLong(toAddress) }}</span>
+            </span>
+          </div>
+        </div>
+        <div class="wrap">
+          <span class="label">{{ $t("public.fee") }}</span>
+          <div class="inner">
+            <span class="left">
+              {{ fee }} {{chooseFromAsset.symbol}}
+            </span>
+          </div>
+        </div>
+        <div class="btn-wrap">
+          <el-button type="primary" :disabled="!canNext" @click="confirmModal=false">
+            {{ $t("home.home20") }}
+          </el-button>
         </div>
       </div>
-    </fee-wrap>
-    <div class="btn-wrap tc">
-      <el-button type="primary" :disabled="!canNext" @click="next">{{
-        $t("public.next")
-      }}</el-button>
-    </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
+import { ETHNET } from "@/config";
 import {
   superLong,
   divisionDecimals,
@@ -121,28 +224,378 @@ import {
   supportChainList
 } from "@/api/util";
 import FeeWrap from "@/components/FeeWrap"
+import { networkOrigin } from '../../api/util';
+import defaultIcon from "@/assets/img/commonIcon.png";
+import { ETransfer } from "@/api/api"
+
+const valideNetwork = supportChainList.map(v => {
+  return v.SwftChain
+});
+
+const networkToChain = {};
+valideNetwork.map(v=> {
+  const chain = supportChainList.filter(item => item.SwftChain === v)[0]
+  networkToChain[v] = {
+    chain: chain.value,
+    chainId: chain.chainId,
+    assetId: chain.assetId
+  }
+})
+
+
+function getAccountList() {
+  return JSON.parse(sessionStorage.getItem("accountList")) || [];
+}
+function getCurrentAccount(address) {
+  const accountList = getAccountList();
+  const currentAccount = accountList.filter((item) => {
+    return item.address.Ethereum === address;
+  });
+  return currentAccount[0] || null;
+}
+
+/* const networkToChain = {
+  NERVE: "NERVE",
+  NULS: "NULS",
+  ETH: "Ethereum",
+  BSC: "BSC",
+  HECO: "Heco",
+  OKT: "OKExChain",
+} */
+
 export default {
   data () {
     return {
+      supportList: [], // 支持的币种
+      dialogCoinList: [], // 弹窗显示的列表
+      fromCoinList: [], // fromChain支持币种
+      toCoinList: [], // toChain 支持币种
+      assetListModal: false,
+      chooseFromAsset: null, // 选择的跨链from资产
+      chooseToAsset: null, // 选择的跨链to资产
+      toNetwork: "",
+      amount: "",
+      toAmount: "",
+      available: 0,
+      fromNetworkMsg: "", //from网络与插件网络不一致 / 数量验证失败
+      amountMsg: "", //转账数量验证失败信息
+      dialogType: "from",
+      max: "", // 最大兑换数
+      min: "", //最小兑换数
+      swapRate: "", // 兑换比例
+      confirmModal: false, 
+      feeLoading: false,
+      fee: "",
     }
+  },
+
+  props: {
+    address: String,
+    provider: Object,
+    fromNetwork: String,
+    fromChainId: String,
+    walletType: String,
+    fromAddress: String
   },
 
   components: {
     FeeWrap
   },
 
-  watch: {},
+  watch: {
+    dialogType(val) {
+      if (!val) return;
+      if (val === "from") {
+        this.dialogCoinList = this.fromCoinList;
+      } else {
+        this.dialogCoinList = this.toCoinList;
+      }
+    },
+    address: {
+      immediate: true,
+      handler(val) {
+        if (!val) return;
+        // this.reset();
+        // this.toNetwork = "";
+      },
+    },
+    fromChainId: {
+      handler(val) {
+        if (!val) return;
+        this.reset();
+        const network = supportChainList.filter(v => v.ropsten === val || v.homestead === val)[0]
+        network && this.checkNetwork(network.value);
+      },
+    },
+    fromNetwork: {
+      immediate: true,
+      handler(val) {
+        if (!val) return;
+        this.reset();
+        
+        this.checkNetwork(val);
+        if (val === this.toNetwork) {
+          this.toNetwork = "";
+        }
+      },
+    },
+    /* networkPair(val) {
+      this.reset();
+      if (val[0] && val[1]) {
+        this.getCanCrossAssets();
+      }
+    } */
+  },
 
-  computed: {},
+
+  computed: {
+    toAddress() {
+      const currentAccount = getCurrentAccount(this.address);
+      return currentAccount ? currentAccount.address[this.toNetwork] : "";
+    },
+    canNext() {
+      if (
+        !this.amount ||
+        !this.toAmount ||
+        !this.chooseFromAsset ||
+        !this.chooseToAsset ||
+        !this.swapRate ||
+        this.fromNetworkMsg ||
+        this.amountMsg
+      )
+        return false;
+      return true;
+    },
+  },
 
   created() {},
 
-  mounted() {},
+  mounted() {
+    this.getCoins();
+  },
 
   methods: {
+    reset() {
+      this.available = 0;
+      this.amount = this.toAmount = "";
+      this.chooseFromAsset = this.chooseToAsset = null;
+      this.fromCoinList = this.dialogCoinList = this.supportList.filter(v => v.chain === this.fromNetwork);
+      // this.fromCoinList = [];
+      this.toCoinList = [];
+      this.fromNetworkMsg = this.amountMsg = ""
+      this.min = this.max= "";
+      this.swapRate = "";
+    },
     superLong(str, len = 8) {
       return superLong(str, len);
     },
+    getLogoSrc(symbol) {
+      return getLogoSrc(symbol);
+    },
+    replaceImg(e) {
+      e.target.src = defaultIcon;
+    },
+    maxAmount() {
+      this.amount = this.available;
+    },
+    validateAmount(val) {
+      if (this.chooseFromAsset) {
+        const decimals = this.chooseFromAsset.decimals || 8;
+        const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
+        // if (this.available && Minus(val, this.available) > 0) return
+        if (patrn.exec(val) || val==="") {
+          this.amount = val
+          this.toAmount = this.swapRate ? this.swapRate * this.amount : "";
+          this.checkAmount();
+        }
+      }
+    },
+    checkAmount() {
+      if (!this.min || !this.max) return
+      let msg = ""
+      if (Minus(this.amount, this.min) < 0 ) {
+        msg = this.$t("tips.tips8") + this.min
+      } else if (Minus(this.amount, this.max) > 0) {
+        msg = this.$t("tips.tips9") + this.max
+      }
+      this.amountMsg = msg;
+    },
+    // 获取swft支持的闪兑列表
+    async getCoins() {
+      const res = await this.$request({
+        url: "/coins"
+      });
+      if (res.msg === "success") {
+        const coins = res.data.filter(v => valideNetwork.indexOf(v.mainNetwork) > -1);
+        coins.map(v => {
+          const chain = networkToChain[v.mainNetwork]
+          v.chain = chain.chain
+          v.symbol = v.coinCode.split("(")[0]
+          /* v.chainId = chain.chainId
+          v.assetId = v.contact ? 0 : chain.assetId */
+          v.contractAddress = v.contact
+        })
+        this.supportList = coins;
+        this.fromCoinList = this.dialogCoinList = this.supportList.filter(v => v.chain === this.fromNetwork);
+      }
+    },
+    // 下拉选择资产
+    async selectAsset(asset) {
+      // console.log(asset, 555)
+      this.assetListModal = false;
+      if (this.dialogType === "from") {
+        this.amount = "";
+        this.chooseFromAsset = asset;
+        this.getBalance(asset);
+        this.toCoinList = [];
+        this.chooseToAsset = null;
+        this.getToCoinList();
+      } else {
+        this.chooseToAsset = asset;
+        this.toNetwork = asset.chain;
+        this.getExchangeRate()
+      }
+    },
+    async getBalance(asset) {
+      if (this.fromNetwork === "NERVE" || this.fromNetwork === "NULS") {
+        const params = {
+          chain: this.fromNetwork,
+          address: this.fromAddress,
+          chainId: asset.chainId,
+          assetId: asset.assetId,
+          contractAddress: asset.contractAddress
+        };
+        // 关注资产
+        await this.$request({
+          url: "/wallet/address/asset/focus",
+          data: {
+            focus: true,
+            ...params,
+          },
+        });
+        this.getAssetInfo(params);
+      } else {
+        try {
+          const transfer = new ETransfer();
+          if (asset.contractAddress) {
+            this.available = await transfer.getERC20Balance(asset.contractAddress, asset.decimals, this.fromAddress);
+          } else {
+            this.available = await transfer.getEthBalance(this.fromAddress);
+          }
+        } catch (e) {
+          this.available = 0;
+          this.$message({ message: this.$t("tips.tips7"), type: "warning", duration: 1000 });
+        }
+      }
+    },
+    // nerve nuls链上获取资产信息
+    async getAssetInfo(params) {
+      const res = await this.$request({
+        url: "/wallet/address/asset",
+        data: {
+          refresh: true,
+          ...params,
+        },
+      });
+      if (res.code === 1000) {
+        this.available = divisionDecimals(res.data.balance, res.data.decimals);
+      }
+    },
+    showDialog(dialogType) {
+      this.dialogType = dialogType;
+      this.assetListModal = true
+    },
+    checkActive(item) {
+      if (this.dialogType === "from") {
+        return { active: this.chooseFromAsset && this.chooseFromAsset.coinId === item.coinId }
+      } else {
+        return { active: this.chooseToAsset && this.chooseToAsset.coinId === item.coinId }
+      }
+    },
+    // 获取to List
+    getToCoinList() {
+      const noSupportCoin = this.supportList.filter(v => {
+        const noSupportItem = this.chooseFromAsset.noSupportCoin.find(item => item.coinId === v.coinId)
+        return !!noSupportItem
+      })
+      this.toCoinList = this.supportList.filter(v => {
+        const support = !noSupportCoin.find(item => item.coinId === v.coinId)
+        return v.coinId !== this.chooseFromAsset.coinId && support
+      })
+    },
+    // 检查metamask网络与nervebridge网络是否一致
+    checkNetwork(fromNetwork) {
+      const network = supportChainList.filter(
+        (item) => item.value === fromNetwork
+      )[0];
+      if (network.hasOwnProperty(ETHNET)) {
+        if (
+          network[ETHNET] !== this.fromChainId &&
+          this.walletType === "metamask"
+        ) {
+          this.fromNetworkMsg = this.$t("home.home8");
+        } else {
+          this.fromNetworkMsg = "";
+        }
+      } else {
+        this.fromNetworkMsg = "";
+      }
+    },
+    // 通过fromCoin toCoin查询兑换汇率
+    async getExchangeRate() {
+      if (!this.chooseFromAsset || !this.chooseToAsset) return
+      const res = await this.$request({
+        url: "/base",
+        data: {
+          depositCoinCode: this.chooseFromAsset.coinCode,
+          receiveCoinCode: this.chooseToAsset.coinCode,
+        },
+      });
+      if (res.msg === "success") {
+        // this.available = divisionDecimals(res.data.balance, res.data.decimals);
+        this.max = res.data.depositMax
+        this.min = res.data.depositMin
+        this.swapRate = res.data.instantRate
+        this.toAmount = this.amount ? this.swapRate * this.amount : "";
+        this.checkAmount();
+        // this.fee = res.data.minerFee
+        /* 
+          depositMax: "19.228828"
+          depositMin: "0.288432"
+          instantRate: "519.387629337727"
+          minerFee: "135.91416814"
+          receiveCoinFee: "40"
+        */
+      }
+    },
+    next() {
+      this.confirmModal = true;
+      this.createOrder();
+    },
+    async createOrder() {
+      this.feeLoading = true;
+      try {
+        const res = await this.$request({
+          url: "/exchange",
+          data: {
+            depositCoinCode: this.chooseFromAsset.coinCode,
+            receiveCoinCode: this.chooseToAsset.coinCode,
+            depositCoinAmt: this.amount,
+            receiveCoinAmt: this.toAmount,
+            destinationAddr: this.toAddress,
+            refundAddr: this.fromAddress
+          },
+        });
+        if (res.msg === "success") {
+          this.fee = res.data.depositCoinFeeAmt
+        }
+      } catch(e) {
+        this.confirmModal = true;
+        this.$message({ message: this.$t("tips.tips10"), type: "warning", duration: 3000 });
+      }
+      this.feeLoading = false;
+    }
+    
   }
 }
 
@@ -192,6 +645,12 @@ export default {
       border-radius: 10px;
       display: flex;
       align-items: center;
+      padding: 0 30px;
+      color: #99A3C4;
+      .network {
+        color: #515E7B;
+        margin-right: 15px;
+      }
     }
   }
   .swap-rate {
@@ -199,6 +658,44 @@ export default {
     color: #515E7B;
     font-size: 13px;
     margin: 10px 0;
+  }
+  .confirm-dialog {
+    .el-dialog__body {
+      padding-top: 0;
+      padding-bottom: 40px;
+    }
+    .wrap {
+      margin-top: 15px;
+      .label {
+        font-size: 12px;
+        color: #99a3c4;
+        margin-bottom: 6px;
+        line-height: 1;
+        display: inline-block;
+      }
+      .inner {
+        height: 54px;
+        background-color: #ebeef8;;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 15px;
+        color: #99A3C4;
+        .left span {
+          margin-left: 10px;
+        }
+        .right {
+          display: flex;
+          align-items: center;
+          color: #99a3c4;
+          font-weight: 600;
+          .origin-chain {
+            font-size: 12px;
+          }
+        }
+      }
+    }
   }
 }
 </style>

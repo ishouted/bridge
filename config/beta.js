@@ -14,4 +14,3 @@ export const ETHNET = 'ropsten';
 
 export const BRIDGE_API_URL = "/bridge-api";
 
-export const SWFT_API_URL = "/api";

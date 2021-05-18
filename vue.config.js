@@ -49,13 +49,13 @@ module.exports = {
         // target: "https://bridge.nerve.network",
         changeOrigin: true,  // 是否跨域
       },
-      "/api": {
-        // target: "http://192.168.1.132:8083", // 周维
-        target: "http://192.168.1.101:8080", // 李超
+      "/nabox-api": {
+        target: "http://192.168.1.132:8083", // 周维
+        // target: "http://192.168.1.101:8080", // 李超
         // target: "http://beta.bridge.nerve.network",
         // target: "https://bridge.nerve.network",
         changeOrigin: true,  // 是否跨域
-      }
+      },
     }
   }
 };

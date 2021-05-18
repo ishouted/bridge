@@ -391,6 +391,14 @@ const ERC20_ABI = [
   "function approve(address spender, uint256 amount) external returns (bool)"
 ];
 
+const erc20BalanceAbiFragment = [{
+  "constant": true,
+  "inputs": [{"name": "", "type": "address"}],
+  "name": "balanceOf",
+  "outputs": [{"name": "", "type": "uint256"}],
+  "type": "function"
+}]
+
 export class ETransfer {
 
   constructor(props = {}) {
@@ -420,6 +428,10 @@ export class ETransfer {
   } */
 
   decodeData(data) {
+    /* const commonTransferABI = ["function transfer(address recipient, uint256 amount)"] // eth等链发起的交易
+    // CROSS_OUT_ABI nerve链发起的跨链转入交易
+    const ABI = fromNerve ? CROSS_OUT_ABI : commonTransferABI
+    const iface = new ethers.utils.Interface(ABI);  */
     const iface = new ethers.utils.Interface(["function transfer(address recipient, uint256 amount)"]);
     const txInfo = iface.parseTransaction({data});
     //const decode = iface.functions["transfer(address,uint256)"].decode(data);
@@ -477,6 +489,34 @@ export class ETransfer {
       delete transactionParameters.from;
     }
     return await this.sendTransaction(transactionParameters)
+  }
+
+  getEthBalance(address) {
+    let balancePromise = this.provider.getBalance(address);
+    return balancePromise.then((balance) => {
+      return ethers.utils.formatEther(balance)
+    }).catch(e => {
+      // console.error('获取余额失败' + e)
+      throw new Error("获取余额失败" + e)
+    });
+  }
+
+  /**
+ * ERC20合约余额
+ * @param contractAddress ERC20合约地址
+ * @param tokenDecimals token小数位数
+ * @param address 账户地址
+ */
+  getERC20Balance(contractAddress, tokenDecimals, address) {
+    let contract = new ethers.Contract(contractAddress, erc20BalanceAbiFragment, this.provider);
+    let balancePromise = contract.balanceOf(address);
+    return balancePromise.then((balance) => {
+      console.log(balance, 123456)
+      return ethers.utils.formatUnits(balance, tokenDecimals);
+    }).catch(e => {
+      // console.error('获取ERC20余额失败' + e)
+      throw new Error("获取余额失败" + e)
+    });
   }
 
   //验证交易参数
