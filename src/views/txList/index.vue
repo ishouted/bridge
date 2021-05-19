@@ -64,7 +64,7 @@ export default {
   created() {
     const address = this.$route.query.address;
     const network = sessionStorage.getItem("network");
-    const accountList = JSON.parse(sessionStorage.getItem("accountList")) || [];
+    const accountList = JSON.parse(localStorage.getItem("accountList")) || [];
     this.currentAccount = accountList.filter(item => {
       return item.address[network] === address
     })[0]
