@@ -94,7 +94,7 @@
         {{ superLong(toAddress) }}
       </div>
     </div>
-    <div class="swap-rate" v-if="swapRate">
+    <div class="swap-rate" v-if="swapRate&&chooseFromAsset&&chooseToAsset">
 
       1 {{chooseFromAsset.symbol}}≈{{swapRate}} {{chooseToAsset.symbol}}
     </div>
@@ -202,17 +202,18 @@
           </div>
         </div>
         <div class="btn-wrap">
-          <el-button type="primary" :disabled="!canNext" @click="confirmModal=false">
+          <el-button type="primary" :disabled="!canNext || !fee || !platformAddress" @click="transfer">
             {{ $t("home.home20") }}
           </el-button>
         </div>
       </div>
     </el-dialog>
+    {{chooseToAsset}}
   </div>
 </template>
 
 <script>
-import { ETHNET } from "@/config";
+import { ETHNET, MAIN_INFO, NULS_INFO } from "@/config";
 import {
   superLong,
   divisionDecimals,
@@ -226,7 +227,7 @@ import {
 import FeeWrap from "@/components/FeeWrap"
 import { networkOrigin } from '../../api/util';
 import defaultIcon from "@/assets/img/commonIcon.png";
-import { ETransfer } from "@/api/api"
+import { ETransfer, NTransfer } from "@/api/api"
 
 const valideNetwork = supportChainList.map(v => {
   return v.SwftChain
@@ -242,7 +243,6 @@ valideNetwork.map(v=> {
   }
 })
 
-
 function getAccountList() {
   return JSON.parse(sessionStorage.getItem("accountList")) || [];
 }
@@ -254,14 +254,6 @@ function getCurrentAccount(address) {
   return currentAccount[0] || null;
 }
 
-/* const networkToChain = {
-  NERVE: "NERVE",
-  NULS: "NULS",
-  ETH: "Ethereum",
-  BSC: "BSC",
-  HECO: "Heco",
-  OKT: "OKExChain",
-} */
 
 export default {
   data () {
@@ -285,7 +277,8 @@ export default {
       swapRate: "", // 兑换比例
       confirmModal: false, 
       feeLoading: false,
-      fee: "",
+      fee: "", // 兑换消耗手续费
+      platformAddress: "", //swft兑换地址
     }
   },
 
@@ -339,12 +332,6 @@ export default {
         }
       },
     },
-    /* networkPair(val) {
-      this.reset();
-      if (val[0] && val[1]) {
-        this.getCanCrossAssets();
-      }
-    } */
   },
 
 
@@ -380,7 +367,6 @@ export default {
       this.amount = this.toAmount = "";
       this.chooseFromAsset = this.chooseToAsset = null;
       this.fromCoinList = this.dialogCoinList = this.supportList.filter(v => v.chain === this.fromNetwork);
-      // this.fromCoinList = [];
       this.toCoinList = [];
       this.fromNetworkMsg = this.amountMsg = ""
       this.min = this.max= "";
@@ -402,6 +388,7 @@ export default {
       if (this.chooseFromAsset) {
         const decimals = this.chooseFromAsset.decimals || 8;
         const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
+        // TODO 去掉注释, 大于可用禁止输入
         // if (this.available && Minus(val, this.available) > 0) return
         if (patrn.exec(val) || val==="") {
           this.amount = val
@@ -441,7 +428,7 @@ export default {
     },
     // 下拉选择资产
     async selectAsset(asset) {
-      // console.log(asset, 555)
+      console.log(asset, 555, this.dialogType)
       this.assetListModal = false;
       if (this.dialogType === "from") {
         this.amount = "";
@@ -552,20 +539,11 @@ export default {
         },
       });
       if (res.msg === "success") {
-        // this.available = divisionDecimals(res.data.balance, res.data.decimals);
         this.max = res.data.depositMax
         this.min = res.data.depositMin
         this.swapRate = res.data.instantRate
         this.toAmount = this.amount ? this.swapRate * this.amount : "";
         this.checkAmount();
-        // this.fee = res.data.minerFee
-        /* 
-          depositMax: "19.228828"
-          depositMin: "0.288432"
-          instantRate: "519.387629337727"
-          minerFee: "135.91416814"
-          receiveCoinFee: "40"
-        */
       }
     },
     next() {
@@ -574,6 +552,8 @@ export default {
     },
     async createOrder() {
       this.feeLoading = true;
+      this.fee = "";
+      this.platformAddress = "";
       try {
         const res = await this.$request({
           url: "/exchange",
@@ -587,14 +567,77 @@ export default {
           },
         });
         if (res.msg === "success") {
-          this.fee = res.data.depositCoinFeeAmt
+          this.fee = res.data.depositCoinFeeAmt;
+          this.platformAddress = res.data.platformAddr;
         }
       } catch(e) {
-        this.confirmModal = true;
+        this.confirmModal = false;
         this.$message({ message: this.$t("tips.tips10"), type: "warning", duration: 3000 });
       }
       this.feeLoading = false;
-    }
+    },
+
+    async transfer() {
+      try {
+        const currentAccount = getCurrentAccount(this.address);
+        if (this.fromNetwork === "NERVE" || this.fromNetwork === "NULS") {
+          // 普通转账
+          const transfer = new NTransfer({
+            chain: this.fromNetwork,
+            type: 2
+          })
+          const transferInfo = {
+            from: this.fromAddress,
+            to: this.platformAddress,
+            assetsChainId: this.chooseFromAsset.chainId,
+            assetsId: this.chooseFromAsset.assetId,
+            amount: timesDecimals(this.amount, this.chooseFromAsset.decimals),
+            fee: timesDecimals(0.001, 8)
+          }
+          const inputOutput = await transfer.inputsOrOutputs(transferInfo);
+          const data = {
+            inputs: inputOutput.inputs,
+            outputs: inputOutput.outputs,
+            txData: {},
+            pub: currentAccount.pub,
+            signAddress: currentAccount.address.Ethereum,
+          };
+          const txHex = await transfer.getTxHex(data);
+          console.log(txHex, 55)
+          if (txHex) {
+            // this.broadcastHex(txHex);
+          }
+        } else {
+          const transfer = new ETransfer()
+          const transferInfo = {
+            value: this.amount,
+            decimals: this.chooseFromAsset.decimals,
+            contractAddress: this.chooseFromAsset.contractAddress,
+            to: this.platformAddress
+          }
+          const res = await transfer.commonTransfer(transferInfo);
+          if (res && res.hash) {
+            this.$message({ message: this.$t("tips.tips1"), type: "success", duration: 2000 });
+          }
+        }
+      } catch (e) {
+        this.$message({ message: this.$t("tips.tips6"), type: "warning", duration: 2000 })
+      }
+       this.confirmModal = false;
+    },
+
+    //广播nerve nuls跨链转账交易
+    async broadcastHex(txHex) {
+      const url = this.fromNetwork === "NERVE" ? MAIN_INFO.rpc : NULS_INFO.rpc;
+      const chainId = this.fromNetwork === "NERVE" ? MAIN_INFO.chainId : NULS_INFO.chainId;
+      const res = await this.$post(url, 'broadcastTx', [chainId, txHex]);
+      if (res.result && res.result.hash) {
+        this.$message({ message: this.$t("tips.tips1"), type: "success", duration: 2000 })
+      } else {
+        this.$message({ message: this.$t("tips.tips6"), type: "warning", duration: 2000 })
+      }
+     
+    },
     
   }
 }
