@@ -2,7 +2,7 @@
   <div class="tx-detail second-page">
     <back-bar :backTitle="$t('txDetail.txDetail1')"></back-bar>
     <div class="content" v-loading="loading">
-      <div class="content-inner">
+      <div class="content-inner" v-if="!isSwftDetail">
         <div 
           class="status tc"
           :class="status">
@@ -35,10 +35,36 @@
               <i class="iconfont icon-lianjie clicks" @click="openUrl(item.hash, item.chain)"></i>
             </span>
           </p>
-          
         </div>
-        
-
+      </div>
+      <div class="content-inner swft-detail" v-else>
+        <div 
+          class="status tc"
+          :class="status">
+          <div class="status-icon">
+            <!-- <i class="iconfont icon-queren"></i> -->
+            <img src="../../assets/img/detail-success.svg" alt="" v-if="swftSuccessStatus.indexOf(txInfo.detailState) > -1">
+            <img src="../../assets/img/detail-fail.svg" alt="" v-else-if="swftFailStatus.indexOf(txInfo.detailState) > -1">
+            <img src="../../assets/img/detail-pending.svg" alt="" v-else>
+          </div>
+          <span>{{ $t("swftStatusType." + txInfo.detailState) }}</span>
+        </div>
+        <div class="amount">
+          <!-- {{txInfo.amount}} {{txInfo.symbol}} -->
+          <span>{{txInfo.depositCoinAmt}} {{txInfo.depositCoinCode }}</span>
+          <i class="iconfont icon-to" style="margin: 0 10px"></i>
+          <span>{{txInfo.receiveCoinAmt}} {{ txInfo.receiveCoinCode }}</span>
+        </div>
+        <div class="other-info">
+          <!-- <p class="info-item">
+            <span class="left">手续费</span>
+            <span class="right">88NVT</span>
+          </p> -->
+          <p class="info-item">
+            <span class="left">{{ $t("public.time") }}</span>
+            <span class="right">{{txInfo.createTime}}</span>
+          </p>
+        </div>
       </div>
     </div>
   </div>
@@ -46,35 +72,52 @@
 
 <script>
 /*---------------------bridge跨链交易状态-----------------------*/
-//跨链交易本链未确认
-// int BG_CROSS_TX_LOCAL_UNCONFIRM = 0;
-// //跨链交易本链已确认
-// int BG_CROSS_TX_LOCAL_CONFIRM = 1;
-// //等待广播闪对交易
-// int BG_WAIT_BROAD_CONVERT = 2;
-// //闪对交易已广播待确认
-// int BG_CROSS_TX_CONVERT_UNCONFIRM = 3;
-// //闪对交易广播失败
-// int BG_CROSS_TX_CONVERT_FAIL = 4;
-// //等待广播nerve跨链交易
-// int BG_WAIT_BROAD_NERVE = 5;
-// //跨链交易NERVE链已广播待确认
-// int BG_CROSS_TX_NERVE_UNCONFIRM = 6;
-// //跨链交易NERVE链广播失败
-// int BG_CROSS_TX_NERVE_FAIL = 7;
-// //目标链最终确认
-// int BG_CROSS_TX_TARGET_CONFIRM = 8;
-// //跨链交易失败
-// int BG_CROSS_TX_FAIL = 9;
+/* 跨链交易本链未确认
+int BG_CROSS_TX_LOCAL_UNCONFIRM = 0;
+//跨链交易本链已确认
+int BG_CROSS_TX_LOCAL_CONFIRM = 1;
+//等待广播闪对交易
+int BG_WAIT_BROAD_CONVERT = 2;
+//闪对交易已广播待确认
+int BG_CROSS_TX_CONVERT_UNCONFIRM = 3;
+//闪对交易广播失败
+int BG_CROSS_TX_CONVERT_FAIL = 4;
+//等待广播nerve跨链交易
+int BG_WAIT_BROAD_NERVE = 5;
+//跨链交易NERVE链已广播待确认
+int BG_CROSS_TX_NERVE_UNCONFIRM = 6;
+//跨链交易NERVE链广播失败
+int BG_CROSS_TX_NERVE_FAIL = 7;
+//目标链最终确认
+int BG_CROSS_TX_TARGET_CONFIRM = 8;
+//跨链交易失败
+int BG_CROSS_TX_FAIL = 9; */
+
+/*---------------------swft跨链交易状态-----------------------*/
+/* 
+(1)wait_deposit_send:等待存币发送
+(2)timeout:超时；
+(3)wait_exchange_push:等待交换信息推送；
+(4)wait_exchange_return:等待交换信息返回；
+(5.1)wait_receive_send:等待接收币种发送, wait_receive_confirm:等待接收币种确认, receive_complete:接收币种确认完成.
+(5.2)wait_refund_send:等待退原币币种发送, wait_refund_confirm:等待退原币币种确认, refund_complete:退原币币种确认完成；
+(6)ERROR/error:正在处理的订单 
+(7)WAIT_KYC: 等待进行KYC或联系客服提供链接
+*/
 import BackBar from '@/components/BackBar'
 import { superLong, divisionAndFix, networkOrigin, copys } from '@/api/util'
+import moment from "moment"
 export default {
   data () {
-    this.failStatus = [4, 7, 9]
+    this.failStatus = [4, 7, 9];
+    this.swftSuccessStatus = ["receive_complete"];
+    this.swftFailStatus = ["timeout", "ERROR/error", "wait_refund_send", "wait_refund_confirm", "refund_complete", "WAIT_KYC"];
+    this.swftPendingStatus = ["wait_deposit_send", "wait_exchange_push", "wait_exchange_return", "wait_receive_send", "wait_receive_confirm"];
     return {
       loading: true,
       txInfo: {},
-      hashList: []
+      hashList: [],
+      isSwftDetail: false
     }
   },
 
@@ -100,18 +143,52 @@ export default {
   created() {},
 
   mounted() {
-    this.getDetail();
-    const timer = setInterval(() => {
+    const {txHash, orderId} = this.$route.query;
+    if (txHash) {
+      this.isSwftDetail = false;
       this.getDetail();
-    }, 10000)
-    this.$once("hook:beforeDestroy", () => {
-      clearInterval(timer)
-    })
+      const timer = setInterval(() => {
+        this.getDetail();
+      }, 10000)
+      this.$once("hook:beforeDestroy", () => {
+        clearInterval(timer)
+      })
+    } else if (orderId) {
+      this.isSwftDetail = true;
+      this.getSwftDetail();
+      const timer = setInterval(() => {
+        this.getSwftDetail();
+      }, 10000)
+      this.$once("hook:beforeDestroy", () => {
+        clearInterval(timer)
+      })
+    }
+    
   },
 
   methods: {
     superLong(str, len = 5) {
       return superLong(str, len)
+    },
+    async getSwftDetail() {
+      const {equipmentNo, orderId} = this.$route.query
+      if (!equipmentNo || !orderId) {
+        this.$message({message: "not fount", type: 'warning', duration: 2000});
+        this.$router.push('/')
+      }
+      const res = await this.$request({
+        url: "/orderinfo",
+        data: {
+          sourceType: "H5",
+          orderId,
+          equipmentNo
+        }
+      });
+      if (res.msg === "success") {
+        res.data.createTime = moment(res.data.createdDate).format("MM-DD HH:mm:ss")
+        this.txInfo = res.data;
+      }
+      this.loading = false;
     },
     async getDetail() {
       const txHash = this.$route.query.txHash;
@@ -237,6 +314,12 @@ export default {
       .iconfont {
         margin-left: 10px;
       }
+    }
+  }
+  .swft-detail {
+    .amount {
+      font-size: 18px;
+      margin-bottom: 20px;
     }
   }
 }

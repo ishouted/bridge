@@ -18,7 +18,6 @@ const en = {
     home3: "Avaliable: ",
     home4: "From",
     home5: "To",
-    // home6: "Choose Asset",
     home6: "Asset(network)",
     home7: "Balance or fee is not enough",
     home8: "Metamask network is inconsistent with DApp network",
@@ -30,6 +29,10 @@ const en = {
     home14: "Cross-chain",
     home15: "跨链交易再各条链上确认时间较长，需数分钟， 请耐心等待",
     home16: "接收地址",
+    home17: "发送",
+    home18: "获得",
+    home19: "订单确认",
+    home20: "确认",
   },
   public: {
     amount: "Amount",
@@ -54,6 +57,8 @@ const en = {
     txList4: "Processing",
     txList5: "Failed",
     txList6: "Finished",
+    txList7: "兑换资产",
+    txList8: "接收资产",
   },
   txDetail: {
     txDetail1: "Detail",
@@ -75,6 +80,10 @@ const en = {
     tips4: "The network is abnormal, the account synchronization failed, please try again later",
     tips5: "Failed to derive multi-chain address",
     tips6: "Transfer Failed,pls try again later",
+    tips7: "查询余额失败",
+    tips8: "最小兑换数量: ",
+    tips9: "最大兑换数量: ",
+    tips10: "创建订单失败",
   },
 
   crossStatusType: {
@@ -93,6 +102,20 @@ const en = {
     // 3: "跨链交易NERVE链广播失败",
     // 4: "目标链已确认",
     // 5: "跨链交易失败",
+  },
+  swftStatusType: {
+    wait_deposit_send: "等待存币发送",
+    timeout: "超时",
+    wait_exchange_push: "等待交换信息推送",
+    wait_exchange_return: "等待交换信息返回",
+    wait_receive_send: "等待接收币种发送", 
+    wait_receive_confirm: "等待接收币种确认", 
+    receive_complete: "接收币种确认完成",
+    wait_refund_send: "等待退原币币种发送",
+    wait_refund_confirm: "等待退原币币种确认",
+    refund_complete: "退原币币种确认完成",
+    "ERROR/error": "正在处理的订单" ,
+    WAIT_KYC: "等待进行KYC或联系客服提供链接"
   },
   ...enLocale
 

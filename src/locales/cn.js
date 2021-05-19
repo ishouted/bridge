@@ -57,6 +57,8 @@ const cn = {
     txList4: "进行中",
     txList5: "失败",
     txList6: "已完成",
+    txList7: "兑换资产",
+    txList8: "接收资产",
   },
   txDetail: {
     txDetail1: "交易详情",
@@ -100,6 +102,20 @@ const cn = {
     // 3: "跨链交易NERVE链广播失败",
     // 4: "目标链已确认",
     // 5: "跨链交易失败",
+  },
+  swftStatusType: {
+    wait_deposit_send: "等待存币发送",
+    timeout: "超时",
+    wait_exchange_push: "等待交换信息推送",
+    wait_exchange_return: "等待交换信息返回",
+    wait_receive_send: "等待接收币种发送", 
+    wait_receive_confirm: "等待接收币种确认", 
+    receive_complete: "接收币种确认完成",
+    wait_refund_send: "等待退原币币种发送",
+    wait_refund_confirm: "等待退原币币种确认",
+    refund_complete: "退原币币种确认完成",
+    "ERROR/error": "正在处理的订单" ,
+    WAIT_KYC: "等待进行KYC或联系客服提供链接"
   },
 
   ...zhLocale

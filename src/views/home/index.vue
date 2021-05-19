@@ -21,14 +21,15 @@
         }}</el-button>
       </div>
       <div v-else>
-        <div class="swap-type">
+        <!-- <div class="swap-type">
           <el-radio-group  v-model="swapType" size="medium">
             <el-radio-button label="swap">{{ $t("home.home13") }}</el-radio-button>
             <el-radio-button label="nerve">{{ $t("home.home14") }}</el-radio-button>
           </el-radio-group>
-        </div>
+        </div> -->
+        <tab-switch v-model="swapType"></tab-switch>
         <swft-swap
-          v-show="swapType==='swap'"
+          v-show="swapType==='swft'"
           :address="address"
           :walletType="walletType"
           :provider="provider"
@@ -61,6 +62,7 @@
 
 <script>
 import HeaderBar from "@/components/HeaderBar";
+import TabSwitch from "@/components/TabSwitch";
 import SwftSwap from "./SwftSwap";
 import NerveSwap from "./NerveSwap";
 import { MAIN_INFO, NULS_INFO, ETHNET } from "@/config";
@@ -90,7 +92,7 @@ export default {
       supportListShow: true, //显示可连接钱包列表
       showSign: true, //显示派生地址
       address: "", //metamask当前选中地址
-      swapType: "swap",
+      swapType: "swft",
       provider: null,
       fromChainId: "",
       walletType: sessionStorage.getItem("walletType"), // 连接钱包类型 metamask walletConnect
@@ -100,7 +102,8 @@ export default {
   components: {
     HeaderBar,
     SwftSwap,
-    NerveSwap
+    NerveSwap,
+    TabSwitch
   },
 
   watch: {

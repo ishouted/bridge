@@ -229,11 +229,11 @@ import { networkOrigin } from '../../api/util';
 import defaultIcon from "@/assets/img/commonIcon.png";
 import { ETransfer, NTransfer } from "@/api/api"
 
-const valideNetwork = supportChainList.map(v => {
+export const valideNetwork = supportChainList.map(v => {
   return v.SwftChain
 });
 
-const networkToChain = {};
+export const networkToChain = {};
 valideNetwork.map(v=> {
   const chain = supportChainList.filter(item => item.SwftChain === v)[0]
   networkToChain[v] = {
