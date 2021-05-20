@@ -174,7 +174,7 @@ import FeeWrap from "@/components/FeeWrap"
 
 
 function getAccountList() {
-  return JSON.parse(sessionStorage.getItem("accountList")) || [];
+  return JSON.parse(localStorage.getItem("accountList")) || [];
 }
 function getCurrentAccount(address) {
   const accountList = getAccountList();

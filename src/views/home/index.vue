@@ -73,7 +73,7 @@ import { supportChainList } from "../../api/util"
 const ethers = require("ethers");
 
 function getAccountList() {
-  return JSON.parse(sessionStorage.getItem("accountList")) || [];
+  return JSON.parse(localStorage.getItem("accountList")) || [];
 }
 function getCurrentAccount(address) {
   const accountList = getAccountList();
@@ -112,7 +112,11 @@ export default {
       handler(val) {
         if (!val) return;
         const currentAccount = getCurrentAccount(val);
-        this.showSign = currentAccount ? false : true;
+        const config = JSON.parse(sessionStorage.getItem("config"));
+        const chainLength = Object.keys(config).length;
+        const addressListLength = currentAccount ? Object.keys(currentAccount.address).length : 0
+        // this.showSign = currentAccount ? false : true;
+        this.showSign = chainLength !== addressListLength
       },
     },
     fromChainId: {
@@ -134,7 +138,7 @@ export default {
     },
     fromAddress() {
       const currentAccount = getCurrentAccount(this.address);
-      return currentAccount ? currentAccount.address[this.fromNetwork] : "";
+      return currentAccount && !this.showSign ? currentAccount.address[this.fromNetwork] : "";
     },
   },
 
@@ -331,12 +335,17 @@ export default {
             pub,
             NULSPrefix
           );
-          const accountList =
-            JSON.parse(sessionStorage.getItem("accountList")) || [];
-          accountList.push(account);
+          const accountList = getAccountList()
+          const existIndex = accountList.findIndex(v => v.pub === account.pub);
+          // 原来存在就替换，找不到就push
+          if (existIndex > -1) {
+            accountList[existIndex] = account
+          } else {
+            accountList.push(account);
+          }
           const syncRes = await this.syncAccount(pub, account.address);
           if (syncRes) {
-            sessionStorage.setItem("accountList", JSON.stringify(accountList));
+            localStorage.setItem("accountList", JSON.stringify(accountList));
             // 重新计算fromAddress
             const address = this.address;
             this.address = "";

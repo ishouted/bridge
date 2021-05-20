@@ -67,19 +67,13 @@
 import BackBar from '@/components/BackBar';
 import TxList from "@/components/TxList";
 import TabSwitch from "@/components/TabSwitch";
-import { superLong } from '@/api/util'
 import { valideNetwork, networkToChain } from "../home/SwftSwap"
 import moment from "moment"
+import { superLong, supportChainList } from '@/api/util'
 
 export default {
   data () {
-    this.chainList = [
-      { label: "NERVE", value: "NERVE" },
-      { label: "NULS", value: "NULS" },
-      { label: "Ethereum", value: "Ethereum" },
-      { label: "BSC", value: "BSC" },
-      { label: "Heco", value: "Heco" },
-    ]
+    this.chainList = supportChainList
     return {
       swapType: "swft",
       loading1: true,
@@ -114,7 +108,7 @@ export default {
   created() {
     const address = this.$route.query.address;
     const network = sessionStorage.getItem("network");
-    const accountList = JSON.parse(sessionStorage.getItem("accountList")) || [];
+    const accountList = JSON.parse(localStorage.getItem("accountList")) || [];
     this.currentAccount = accountList.filter(item => {
       return item.address[network] === address
     })[0]
