@@ -51,9 +51,9 @@
         </div>
         <div class="amount">
           <!-- {{txInfo.amount}} {{txInfo.symbol}} -->
-          <span>{{txInfo.depositCoinAmt}} {{txInfo.depositCoinCode }}</span>
-          <i class="iconfont icon-to" style="margin: 0 10px"></i>
-          <span>{{txInfo.receiveCoinAmt}} {{ txInfo.receiveCoinCode }}</span>
+          <span>{{ txInfo.depositCoinAmt }} {{ txInfo.depositCoinCode }}</span>
+          <i class="iconfont icon-to"></i>
+          <span>{{ txInfo.receiveCoinAmt }} {{ txInfo.receiveCoinCode }}</span>
         </div>
         <div class="other-info">
           <!-- <p class="info-item">
@@ -63,6 +63,10 @@
           <p class="info-item">
             <span class="left">{{ $t("public.time") }}</span>
             <span class="right">{{txInfo.createTime}}</span>
+          </p>
+          <p class="info-item">
+            <span class="left">{{ $t("public.fee") }}</span>
+            <span class="right">{{ txInfo.depositCoinFeeAmt }} {{ txInfo.depositCoinCode }}</span>
           </p>
         </div>
       </div>
@@ -276,12 +280,7 @@ export default {
       position: absolute;
       width: 50px;
       height: 50px;
-      // line-height: 40px;
-      // background: #18CCB1;
-      // border: 5px solid #F0F2F7;
       border-radius: 50%;
-      // text-align: center;
-      // color: #fff;
       left: 50%;
       transform: translateX(-50%);
       top: -25px;
@@ -318,8 +317,12 @@ export default {
   }
   .swft-detail {
     .amount {
-      font-size: 18px;
-      margin-bottom: 20px;
+      font-size: 17px;
+      .icon-to {
+        margin: 0 10px;
+        font-size: 26px;
+        color: #99A3C4;
+      }
     }
   }
 }

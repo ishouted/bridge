@@ -25,14 +25,16 @@ const cn = {
     home10: "点击授权",
     home11: "加速",
     home12: "查询闪兑费用失败，请稍后重试",
-    home13: "Swft",
+    home13: "Swap",
     home14: "Cross-chain",
-    home15: "跨链交易再各条链上确认时间较长，需数分钟， 请耐心等待",
+    home15: "跨链交易在各条链上确认时间较长，需数分钟， 请耐心等待",
     home16: "接收地址",
     home17: "发送",
     home18: "获得",
     home19: "订单确认",
     home20: "确认",
+    home21: "发送",
+    home22: "接收",
   },
   public: {
     amount: "数量",
@@ -72,6 +74,7 @@ const cn = {
     transfer4: "手续费兑换为NVT",
     transfer5: "转入目标网络",
     transfer6: "交易数据丢失, 请重新操作",
+    transfer7: "去中心化跨链需进行多次签名，中断签名将导致交易失败"
   },
   tips: {
     tips1: "交易已发出，等待区块确认",

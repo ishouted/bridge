@@ -3,7 +3,7 @@
     <div class="tip">{{ $t("home.home15") }}</div>
     <div class="amount">
       <div class="label-wrap">
-        <span class="label">From</span>
+        <span class="label">{{ $t("home.home21") }}</span>
         <span>{{ $t("home.home3") }} {{ available }}</span>
       </div>
       <el-input
@@ -52,7 +52,7 @@
     </div>
     <div class="amount">
       <div class="label-wrap">
-        <span class="label">To</span>
+        <span class="label">{{ $t("home.home22") }}</span>
       </div>
       <el-input
         class="amount-inner"
@@ -85,7 +85,7 @@
         </div>
       </el-input>
     </div>
-    <div class="to-address">
+    <div class="to-address" v-if="toAddress">
       <span class="label">{{ $t("home.home16") }}</span>
       <div class="address-inner">
         <span class="network">
@@ -208,7 +208,6 @@
         </div>
       </div>
     </el-dialog>
-    {{chooseToAsset}}
   </div>
 </template>
 
@@ -244,7 +243,7 @@ valideNetwork.map(v=> {
 })
 
 function getAccountList() {
-  return JSON.parse(sessionStorage.getItem("accountList")) || [];
+  return JSON.parse(localStorage.getItem("accountList")) || [];
 }
 function getCurrentAccount(address) {
   const accountList = getAccountList();
@@ -368,6 +367,7 @@ export default {
       this.chooseFromAsset = this.chooseToAsset = null;
       this.fromCoinList = this.dialogCoinList = this.supportList.filter(v => v.chain === this.fromNetwork);
       this.toCoinList = [];
+      this.toNetwork = "";
       this.fromNetworkMsg = this.amountMsg = ""
       this.min = this.max= "";
       this.swapRate = "";
@@ -428,7 +428,7 @@ export default {
     },
     // 下拉选择资产
     async selectAsset(asset) {
-      console.log(asset, 555, this.dialogType)
+      // console.log(asset, 555, this.dialogType)
       this.assetListModal = false;
       if (this.dialogType === "from") {
         this.amount = "";
@@ -436,6 +436,7 @@ export default {
         this.getBalance(asset);
         this.toCoinList = [];
         this.chooseToAsset = null;
+        this.toNetwork = "";
         this.getToCoinList();
       } else {
         this.chooseToAsset = asset;
@@ -572,12 +573,17 @@ export default {
         }
       } catch(e) {
         this.confirmModal = false;
-        this.$message({ message: this.$t("tips.tips10"), type: "warning", duration: 3000 });
+        this.reset();
+        this.$message({ message: this.$t("tips.tips10"), type: "warning", duration: 2000 });
       }
       this.feeLoading = false;
     },
 
     async transfer() {
+      if (!this.platformAddress) {
+        this.$message({ message: this.$t("tips.tips10"), type: "warning", duration: 2000 });
+        return;
+      }
       try {
         const currentAccount = getCurrentAccount(this.address);
         if (this.fromNetwork === "NERVE" || this.fromNetwork === "NULS") {
@@ -605,7 +611,7 @@ export default {
           const txHex = await transfer.getTxHex(data);
           console.log(txHex, 55)
           if (txHex) {
-            // this.broadcastHex(txHex);
+            await this.broadcastHex(txHex);
           }
         } else {
           const transfer = new ETransfer()
@@ -620,6 +626,7 @@ export default {
             this.$message({ message: this.$t("tips.tips1"), type: "success", duration: 2000 });
           }
         }
+        this.reset();
       } catch (e) {
         this.$message({ message: this.$t("tips.tips6"), type: "warning", duration: 2000 })
       }
@@ -701,6 +708,9 @@ export default {
     color: #515E7B;
     font-size: 13px;
     margin: 10px 0;
+  }
+  .btn-wrap.tc {
+    margin-top: 30px;
   }
   .confirm-dialog {
     .el-dialog__body {

@@ -638,7 +638,7 @@ export default {
   }
 
   .btn-wrap {
-    width: 90%;
+    width: 100%;
     margin: 20px auto 0;
     .el-button {
       width: 100%;

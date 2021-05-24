@@ -3,6 +3,7 @@
     <back-bar :backTitle="$t('transfer.transfer1')"></back-bar>
     <div class="content">
       <div class="content-inner">
+        <div class="sign-tips">{{ $t("transfer.transfer7") }}</div>
         <div class="step-list">
           <div
             class="step"
@@ -91,7 +92,6 @@ export default {
           NULSContracInfo, // nuls 合约token跨链
           crossInForSwapInfo, // 闪兑资产
           swapInfo, // 闪兑交易
-          isTransferMainAsset, // 跨链资产是否是来源链的主资产
         } = this.sessionInfo;
         if (fromChain === "NERVE") {
           let type, transferInfo;
@@ -453,6 +453,11 @@ export default {
 </script>
 <style lang="less">
 .transfer {
+  .sign-tips {
+    font-size: 14px;
+    padding: 20px 0;
+    color: #99a3c4;
+  }
   .step {
     display: flex;
     height: 80px;

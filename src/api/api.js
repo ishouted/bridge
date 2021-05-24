@@ -502,7 +502,9 @@ export class ETransfer {
       const contract = new ethers.Contract(params.contractAddress, erc20TransferAbiFragment, wallet);
       const numberOfTokens = ethers.utils.parseUnits(params.value, params.decimals);
       const transaction = { nonce };
-      
+      /* console.log("to: ", params.to)
+      console.log("numberOfTokens: ", numberOfTokens)
+      console.log("transaction: ", transaction) */
       return await contract.transfer(params.to, numberOfTokens, transaction);
     } else {
       // 非token转账
@@ -511,6 +513,7 @@ export class ETransfer {
       /* if (params.upSpeed) {
         transaction.gasPrice = await this.getSpeedUpGasPrice();
       } */
+      // console.log("transaction: ", transaction)
       return await wallet.sendTransaction(transaction);
     }
   }
