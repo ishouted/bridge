@@ -69,10 +69,10 @@ const en = {
   },
   transfer: {
     transfer1: "Transfer",
-    transfer2: "Transfer into Nerve",
+    transfer2: "Transfer asset to Nerve network",
     transfer3: "Transfer fee",
     transfer4: "Swap fee to NVT",
-    transfer5: "Transfer into destination network",
+    transfer5: "Transfer asset to target network",
     transfer6: "Transaction data lost，pls try again",
     transfer7: "Decentralized cross-chain requires multiple signatures. Interruption of signatures will result in transaction failure",
   },

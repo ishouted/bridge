@@ -172,7 +172,10 @@ export default {
         this.runTransfer();
       } catch (e) {
         console.log(e, "===组装交易失败===");
-        this.$message({ message: this.$t("tips.tips6"), type: "warning" });
+        this.$message({ message: this.$t("tips.tips6"), type: "warning", duration: 2000 });
+        setTimeout(() => {
+          this.$router.push("/")
+        }, 2000)
       }
       this.loading = false;
     },
@@ -390,10 +393,10 @@ export default {
       } catch (e) {
         console.error("error: " + e);
         if (this.destroyed) return;
-        this.$message({ message: this.$t("tips.tips6"), type: "warning" });
+        this.$message({ message: this.$t("tips.tips6"), type: "warning", duration: 2000 });
         setTimeout(() => {
           this.$router.push("/")
-        }, 3000)
+        }, 2000)
       }
     },
     //广播nerve nuls跨链转账交易
@@ -474,6 +477,8 @@ export default {
         }
       }
       .right span {
+        // color: #000;
+        // font-weight: 600;
         color: #5bcaf9;
       }
     }
@@ -517,6 +522,8 @@ export default {
       span {
         display: inline-block;
         font-size: 14px;
+        color: #000;
+        font-weight: 600;
       }
       i {
         margin-left: 5px;

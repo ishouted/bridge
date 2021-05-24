@@ -69,10 +69,10 @@ const cn = {
   },
   transfer: {
     transfer1: "转账",
-    transfer2: "转入NERVE网络",
+    transfer2: "将资产转入Nerve网络",
     transfer3: "转入手续费",
-    transfer4: "手续费兑换为NVT",
-    transfer5: "转入目标网络",
+    transfer4: "将手续费兑换为NVT",
+    transfer5: "将资产转入目标网络",
     transfer6: "交易数据丢失, 请重新操作",
     transfer7: "去中心化跨链需进行多次签名，中断签名将导致交易失败"
   },
