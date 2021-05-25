@@ -168,7 +168,7 @@
           <span class="label">{{ $t("home.home18") }}</span>
           <div class="inner">
             <span class="left">
-              {{ toAmount }}
+              {{ estimatedAmount }}
             </span>
             <div class="right">
               <img
@@ -189,7 +189,7 @@
           <div class="inner">
             <span class="left">
               {{ toNetwork }} 
-              <span>{{ superLong(toAddress) }}</span>
+              <span class="address">{{ superLong(toAddress) }}</span>
             </span>
           </div>
         </div>
@@ -198,6 +198,9 @@
           <div class="inner">
             <span class="left">
               {{ fee }} {{chooseFromAsset.symbol}}
+              <span style="font-size: 13px">({{chooseFromAsset.chain}})</span>
+               + {{withdrawalFee}} {{chooseToAsset.symbol}}
+               <span style="font-size: 13px">({{chooseToAsset.chain}})</span>
             </span>
           </div>
         </div>
@@ -227,6 +230,8 @@ import FeeWrap from "@/components/FeeWrap"
 import { networkOrigin } from '../../api/util';
 import defaultIcon from "@/assets/img/commonIcon.png";
 import { ETransfer, NTransfer } from "@/api/api"
+
+const swftFeeRate = 0.002;
 
 export const valideNetwork = supportChainList.map(v => {
   return v.SwftChain
@@ -277,7 +282,9 @@ export default {
       confirmModal: false, 
       feeLoading: false,
       fee: "", // 兑换消耗手续费
+      withdrawalFee: "", // 提币消耗手续费
       platformAddress: "", //swft兑换地址
+      estimatedAmount: "", // 扣除手续费后预估到账数量
     }
   },
 
@@ -386,10 +393,10 @@ export default {
     },
     validateAmount(val) {
       if (this.chooseFromAsset) {
-        const decimals = this.chooseFromAsset.decimals || 8;
+        // const decimals = this.chooseFromAsset.decimals || 8;
+        const decimals = 8; // swft创建订单限制小数位数为8
         const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
-        // TODO 去掉注释, 大于可用禁止输入
-        // if (this.available && Minus(val, this.available) > 0) return
+        if (this.available && Minus(val, this.available) > 0) return
         if (patrn.exec(val) || val==="") {
           this.amount = val
           this.toAmount = this.swapRate ? this.swapRate * this.amount : "";
@@ -551,11 +558,17 @@ export default {
       this.confirmModal = true;
       this.createOrder();
     },
+    // 创建订单
     async createOrder() {
       this.feeLoading = true;
       this.fee = "";
       this.platformAddress = "";
       try {
+        const withdrawalFee = await this.getWithdrawalFee();
+        this.withdrawalFee = withdrawalFee;
+        this.fee = Times(this.amount, swftFeeRate).toFixed(); // swft 收取手续费
+        const transformFeeAmount = Times(this.fee, this.swapRate); // swft收取的手续费转换为to资产数量
+        this.estimatedAmount = Minus(this.toAmount, Plus(transformFeeAmount, withdrawalFee)).toFixed();
         const res = await this.$request({
           url: "/exchange",
           data: {
@@ -564,11 +577,13 @@ export default {
             depositCoinAmt: this.amount,
             receiveCoinAmt: this.toAmount,
             destinationAddr: this.toAddress,
-            refundAddr: this.fromAddress
+            refundAddr: this.fromAddress,
+            estimated: this.estimatedAmount,
+            estimatedFee: withdrawalFee
           },
         });
         if (res.msg === "success") {
-          this.fee = res.data.depositCoinFeeAmt;
+          // this.fee = res.data.depositCoinFeeAmt;
           this.platformAddress = res.data.platformAddr;
         }
       } catch(e) {
@@ -577,6 +592,21 @@ export default {
         this.$message({ message: this.$t("tips.tips10"), type: "warning", duration: 2000 });
       }
       this.feeLoading = false;
+    },
+
+    async getWithdrawalFee() {
+      const res = await this.$request({
+        url: "/fee",
+        data: {
+          coinCode: this.chooseToAsset.coinCode
+        }
+      });
+      let withdrawalFee = ""
+      if (res.msg === "success") {
+        withdrawalFee = res.data && res.data[0] && res.data[0].chainFee
+      }
+      if (!withdrawalFee) throw new Error("获取手续费失败");
+      return withdrawalFee
     },
 
     async transfer() {
@@ -735,7 +765,7 @@ export default {
         justify-content: space-between;
         padding: 0 15px;
         color: #99A3C4;
-        .left span {
+        .left .address {
           margin-left: 10px;
         }
         .right {

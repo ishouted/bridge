@@ -66,7 +66,10 @@
           </p>
           <p class="info-item">
             <span class="left">{{ $t("public.fee") }}</span>
-            <span class="right">{{ txInfo.depositCoinFeeAmt }} {{ txInfo.depositCoinCode }}</span>
+            <span class="right">
+              {{ txInfo.depositCoinFeeAmt }} {{ txInfo.depositCoinCode }} + 
+              {{ txInfo.estimatedFee }} {{ txInfo.receiveCoinCode }}
+            </span>
           </p>
         </div>
       </div>
@@ -302,6 +305,10 @@ export default {
       margin-bottom: 25px;
       .left {
         color: #99A3C4;
+        width: 60px;
+      }
+      .right {
+        text-align: right;
       }
     }
     .network-info {
