@@ -192,7 +192,7 @@ export default {
         }
       });
       if (res.msg === "success") {
-        res.data.createTime = moment(res.data.createdDate).format("MM-DD HH:mm:ss")
+        res.data.createTime = moment(res.data.createTime).format("MM-DD HH:mm:ss")
         this.txInfo = res.data;
       }
       this.loading = false;
