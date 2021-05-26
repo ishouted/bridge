@@ -25,7 +25,7 @@ const en = {
     home10: "Approve",
     home11: "Speed up",
     home12: "Failed to check flash fee, please try again later",
-    home13: "Swft",
+    home13: "Swap",
     home14: "Cross-chain",
     home15: "Cross-chain transactions take a long time to confirm on each chain, which takes several minutes, please wait patiently",
     home16: "Receving address",

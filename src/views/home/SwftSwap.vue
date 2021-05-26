@@ -1,6 +1,6 @@
 <template>
   <div class="swft-swap">
-    <div class="tip">{{ $t("home.home15") }}</div>
+    <!-- <div class="tip">{{ $t("home.home15") }}</div> -->
     <div class="amount">
       <div class="label-wrap">
         <span class="label">{{ $t("home.home21") }}</span>
@@ -389,7 +389,17 @@ export default {
       e.target.src = defaultIcon;
     },
     maxAmount() {
-      this.amount = this.available;
+      const strAvailable = this.available + "";
+      const int = strAvailable.split(".")[0];
+      let float = strAvailable.split(".")[1];
+      let amount
+      if (float) {
+        float = float.substring(0,8);
+        amount = int + "." +float;
+      } else {
+        amount = int;
+      }
+      this.validateAmount(amount);
     },
     validateAmount(val) {
       if (this.chooseFromAsset) {
