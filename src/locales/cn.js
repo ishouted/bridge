@@ -35,6 +35,7 @@ const cn = {
     home20: "确认",
     home21: "发送",
     home22: "接收",
+    home23: "所有手续费由第三方平台收取，NerveBridge未收取任何费用",
   },
   public: {
     amount: "数量",

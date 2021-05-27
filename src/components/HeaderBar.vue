@@ -15,7 +15,10 @@
           >
           </el-option>
         </el-select> -->
-        <span class="network" @click.stop="showNetworkList=!showNetworkList"> {{ $store.state.network }} </span>
+        <span class="network" @click.stop="showNetworkList=!showNetworkList">
+           {{ $store.state.network }}
+           <i class="el-icon-caret-bottom" style="margin-left: -5px"></i>
+        </span>
         <span @click="showAccountDialog=true">{{ superLong(address, 5) }}</span>
         <ul class="support-network-list" v-show="showNetworkList">
           <li

@@ -28,6 +28,15 @@
           </el-radio-group>
         </div> -->
         <tab-switch v-model="swapType"></tab-switch>
+        <nerve-swap
+          v-show="swapType==='nerve'"
+          :address="address"
+          :walletType="walletType"
+          :provider="provider"
+          :fromNetwork="fromNetwork"
+          :fromChainId="fromChainId"
+          :fromAddress="fromAddress"
+        ></nerve-swap>
         <swft-swap
           v-show="swapType==='swft'"
           :address="address"
@@ -38,15 +47,6 @@
           :fromAddress="fromAddress"
         >
         </swft-swap>
-        <nerve-swap
-          v-show="swapType==='nerve'"
-          :address="address"
-          :walletType="walletType"
-          :provider="provider"
-          :fromNetwork="fromNetwork"
-          :fromChainId="fromChainId"
-          :fromAddress="fromAddress"
-        ></nerve-swap>
         <!-- <nerve-swap
           :address="address"
           :walletType="walletType"
@@ -92,7 +92,7 @@ export default {
       supportListShow: true, //显示可连接钱包列表
       showSign: true, //显示派生地址
       address: "", //metamask当前选中地址
-      swapType: "swft",
+      swapType: "nerve",
       provider: null,
       fromChainId: "",
       walletType: sessionStorage.getItem("walletType"), // 连接钱包类型 metamask walletConnect
@@ -403,7 +403,7 @@ export default {
   .home-content {
     background-color: #fff;
     margin: 15px;
-    padding: 15px;
+    padding: 25px 15px;
     min-height: calc(100% - 94px);
     border-radius: 10px;
   }
@@ -610,12 +610,19 @@ export default {
     .el-input__inner {
       background-color: @BColor !important;
       border: none !important;
-      font-weight: bold;
-      color: #99a3c4 !important;
+      /* font-weight: bold;
+      color: #99a3c4 !important; */
+      font-size: 16px;
+      font-weight: normal !important;
+      color: #515B7D !important;
       &::-webkit-input-placeholder {
+        font-weight: normal;
+        color: #515B7D !important;
+      }
+     /*  &::-webkit-input-placeholder {
         font-weight: bold;
         color: #99a3c4;
-      }
+      } */
     }
   }
   .fee {

@@ -75,7 +75,7 @@ export default {
   data () {
     this.chainList = supportChainList
     return {
-      swapType: "swft",
+      swapType: "nerve",
       loading1: true,
       loading: true,
       depositCoinCode: "", // swft 发起兑换资产

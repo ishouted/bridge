@@ -1,8 +1,8 @@
 <template>
   <div class="swap-type">
     <el-radio-group  :valu7="type" @change="handleChange" v-model="type" size="medium">
-      <el-radio-button label="swft">{{ $t("home.home13") }}</el-radio-button>
       <el-radio-button label="nerve">{{ $t("home.home14") }}</el-radio-button>
+      <el-radio-button label="swft">{{ $t("home.home13") }}</el-radio-button>
     </el-radio-group>
   </div>
 </template>
@@ -17,7 +17,7 @@ export default {
   props: {
     type: {
       type: String,
-      default: "swft"
+      default: "nerve"
     }
   },
 

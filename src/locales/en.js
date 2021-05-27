@@ -35,6 +35,7 @@ const en = {
     home20: "Confirm",
     home21: "Send",
     home22: "Receive",
+    home23: "All fees are charged by the third-party platform, NerveBridge charge no fees",
   },
   public: {
     amount: "Amount",
@@ -65,7 +66,7 @@ const en = {
   txDetail: {
     txDetail1: "Detail",
     txDetail2: "(Transfer swap fee)",
-    txDetail3: "(Swap withdrwa fee)",
+    txDetail3: "(Swap withdrawal fee)",
   },
   transfer: {
     transfer1: "Transfer",

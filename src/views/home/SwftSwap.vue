@@ -103,6 +103,10 @@
         {{ $t("public.next") }}
       </el-button>
     </div>
+    <div class="powerd-by">
+      <p>Power By SWFT</p>
+      <p>Wechat Support：SWFT888</p>
+    </div>
     <el-dialog
       :title="$t('home.home6')"
       :visible.sync="assetListModal"
@@ -194,7 +198,17 @@
           </div>
         </div>
         <div class="wrap">
-          <span class="label">{{ $t("public.fee") }}</span>
+          <fee-wrap :label="$t('home.home23')">
+            <div class="inner">
+              <span class="left">
+                {{ fee }} {{chooseFromAsset.symbol}}
+                <span style="font-size: 13px">({{chooseFromAsset.chain}})</span>
+                + {{withdrawalFee}} {{chooseToAsset.symbol}}
+                <span style="font-size: 13px">({{chooseToAsset.chain}})</span>
+              </span>
+            </div>
+          </fee-wrap>
+          <!-- <span class="label">{{ $t("public.fee") }}</span>
           <div class="inner">
             <span class="left">
               {{ fee }} {{chooseFromAsset.symbol}}
@@ -202,7 +216,7 @@
                + {{withdrawalFee}} {{chooseToAsset.symbol}}
                <span style="font-size: 13px">({{chooseToAsset.chain}})</span>
             </span>
-          </div>
+          </div> -->
         </div>
         <div class="btn-wrap">
           <el-button type="primary" :disabled="!canNext || !fee || !platformAddress" @click="transfer">
@@ -229,7 +243,7 @@ import {
 import FeeWrap from "@/components/FeeWrap"
 import { networkOrigin } from '../../api/util';
 import defaultIcon from "@/assets/img/commonIcon.png";
-import { ETransfer, NTransfer } from "@/api/api"
+import { ETransfer, NTransfer } from "@/api/api";
 
 const swftFeeRate = 0.002;
 
@@ -654,6 +668,7 @@ export default {
             await this.broadcastHex(txHex);
           }
         } else {
+          // console.log(new Date().toLocaleString(), 123)
           const transfer = new ETransfer()
           const transferInfo = {
             value: this.amount,
@@ -661,6 +676,7 @@ export default {
             contractAddress: this.chooseFromAsset.contractAddress,
             to: this.platformAddress
           }
+          // console.log(new Date().toLocaleString(), 456)
           const res = await transfer.commonTransfer(transferInfo);
           if (res && res.hash) {
             this.$message({ message: this.$t("tips.tips1"), type: "success", duration: 2000 });
@@ -718,6 +734,20 @@ export default {
   .amount {
     .el-input.is-disabled .el-input__inner {
       cursor: auto;
+    }
+    .amount-inner .el-input__inner {
+      font-size: 16px;
+      font-weight: normal !important;
+      color: #515B7D !important;
+      &::-webkit-input-placeholder {
+        font-weight: normal;
+        color: #515B7D !important;
+      }
+    }
+    .el-input-group__append .el-button span{
+      font-size: 12px;
+      font-weight: normal;
+      color: #515B7D;
     }
   }
   .to-address {
@@ -788,6 +818,14 @@ export default {
           }
         }
       }
+    }
+  }
+  .powerd-by {
+    position: absolute;
+    bottom: 30px;
+    p {
+      font-size: 12px;
+      color: #bdbbbb;
     }
   }
 }

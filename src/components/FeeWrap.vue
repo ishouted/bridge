@@ -3,7 +3,7 @@
     <span class="label">{{ $t("public.fee") }}</span>
       <el-tooltip
         effect="dark"
-        :content="$t('home.home2')"
+        :content="label || $t('home.home2')"
         placement="top"
         :append-to-body="false"
         ref="mypop"
@@ -18,6 +18,9 @@
 <script>
 
 export default {
+  props: {
+    label: String
+  },
   mounted() {
     /* 
       tooltip插入到指定元素内
