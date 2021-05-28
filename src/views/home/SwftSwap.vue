@@ -11,7 +11,6 @@
         placeholder="0.0"
         :value="amount"
         @input="validateAmount"
-        @change="getTransferFee"
       >
         <span
           class="select-asset-btn fw"
@@ -103,8 +102,8 @@
         {{ $t("public.next") }}
       </el-button>
     </div>
-    <div class="powerd-by">
-      <p>Power By SWFT</p>
+    <div class="powered-by">
+      <p>Powered By SWFT</p>
       <p>Wechat Support：SWFT888</p>
     </div>
     <el-dialog
@@ -295,10 +294,11 @@ export default {
       swapRate: "", // 兑换比例
       confirmModal: false, 
       feeLoading: false,
-      fee: "", // 兑换消耗手续费
-      withdrawalFee: "", // 提币消耗手续费
+      fee: "", // swft收取的手续费
+      withdrawalFee: "", // 交易所提币消耗手续费
       platformAddress: "", //swft兑换地址
       estimatedAmount: "", // 扣除手续费后预估到账数量
+      transferFee: 0, // 发送交易消耗的手续费
     }
   },
 
@@ -392,6 +392,7 @@ export default {
       this.fromNetworkMsg = this.amountMsg = ""
       this.min = this.max= "";
       this.swapRate = "";
+      this.transferFee = 0;
     },
     superLong(str, len = 8) {
       return superLong(str, len);
@@ -402,8 +403,11 @@ export default {
     replaceImg(e) {
       e.target.src = defaultIcon;
     },
-    maxAmount() {
-      const strAvailable = this.available + "";
+    async maxAmount() {
+      // console.log(this.fromNetwork, "===fromNetwork===")
+      if (!this.chooseFromAsset) return;
+      const fee = this.transferFee;
+      const strAvailable = Minus(this.available, fee).toFixed();
       const int = strAvailable.split(".")[0];
       let float = strAvailable.split(".")[1];
       let amount
@@ -415,12 +419,31 @@ export default {
       }
       this.validateAmount(amount);
     },
+    // 计算发送交易消耗的手续费
+    async getTransferFee() {
+      let fee = 0;
+      if (this.fromNetwork !== "NERVE" && this.fromNetwork !== "NULS") {
+        if (!this.chooseFromAsset.contractAddress) {
+          const transfer = new ETransfer();
+          const gasLimit = "33594"
+          fee = await transfer.getGasPrice(gasLimit);
+        }
+      } else {
+        // NULS默认 0.001  
+        const { chainId, assetId } = this.chooseFromAsset;
+        if (this.fromNetwork === "NULS" && chainId === NULS_INFO.chainId && assetId === NULS_INFO.assetId) {
+          fee = 0.001
+        }
+      }
+      // console.log(fee, 132)
+      this.transferFee = fee
+    },
     validateAmount(val) {
       if (this.chooseFromAsset) {
         // const decimals = this.chooseFromAsset.decimals || 8;
         const decimals = 8; // swft创建订单限制小数位数为8
         const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
-        if (this.available && Minus(val, this.available) > 0) return
+        if (this.available && Minus(Plus(val, this.transferFee), this.available) > 0) return
         if (patrn.exec(val) || val==="") {
           this.amount = val
           this.toAmount = this.swapRate ? this.swapRate * this.amount : "";
@@ -468,6 +491,7 @@ export default {
         this.toCoinList = [];
         this.chooseToAsset = null;
         this.toNetwork = "";
+        this.getTransferFee();
         this.getToCoinList();
       } else {
         this.chooseToAsset = asset;
@@ -641,6 +665,17 @@ export default {
       try {
         const currentAccount = getCurrentAccount(this.address);
         if (this.fromNetwork === "NERVE" || this.fromNetwork === "NULS") {
+          let checkAssetSupport = true;
+          const {chainId, assetId} = this.chooseFromAsset
+          if (this.fromNetwork === "NERVE") {
+            checkAssetSupport = chainId === MAIN_INFO.chainId && assetId === MAIN_INFO.assetId
+          } else {
+            checkAssetSupport = chainId === NULS_INFO.chainId && assetId === NULS_INFO.assetId
+          }
+          if (!checkAssetSupport) {
+            this.$message({message: "暂未支持非主资产转账", type: "warning", duration: 3000});
+            return;
+          }
           // 普通转账
           const transfer = new NTransfer({
             chain: this.fromNetwork,
@@ -820,9 +855,16 @@ export default {
       }
     }
   }
-  .powerd-by {
+  .powered-by {
     position: absolute;
-    bottom: 30px;
+    bottom: 10px;
+    left: 0;
+    // left: 15px;
+    // width: calc(100% - 15px);
+    width: 100%;
+    background-color: #f0f2f7;
+    padding: 10px 15px 0;
+    text-align: center;
     p {
       font-size: 12px;
       color: #bdbbbb;
