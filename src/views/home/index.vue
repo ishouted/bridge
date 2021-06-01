@@ -116,7 +116,7 @@ export default {
         const chainLength = Object.keys(config).length;
         const addressListLength = currentAccount ? Object.keys(currentAccount.address).length : 0
         // this.showSign = currentAccount ? false : true;
-        this.showSign = chainLength !== addressListLength
+        this.showSign = !chainLength || chainLength !== addressListLength
       },
     },
     fromChainId: {

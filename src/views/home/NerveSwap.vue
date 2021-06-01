@@ -353,6 +353,10 @@ export default {
         },
       });
       if (res.code === 1000) {
+        res.data.map(v => {
+          // 去除ETH资产contractAddress为ETH
+          v.contractAddress = v.contractAddress && v.assetId !== 1 ? v.contractAddress : "";
+        })
         this.assetsList = res.data;
       }
     },
