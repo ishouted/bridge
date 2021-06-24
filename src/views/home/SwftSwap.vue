@@ -103,8 +103,7 @@
       </el-button>
     </div>
     <div class="powered-by">
-      <p>Powered By SWFT</p>
-      <p>Wechat Support：swftcoin</p>
+      <p>Powered By SWFT & NerveNetwork</p>
     </div>
     <el-dialog
       :title="$t('home.home6')"
