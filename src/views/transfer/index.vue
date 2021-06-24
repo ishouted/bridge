@@ -230,6 +230,7 @@ export default {
           const tAssemble = new txs.Transaction();
           tAssemble.parse(bufferReader);
           const hash = tAssemble.getHash().toString("hex");
+          // console.log(hash, "====hash====")
           const nonce = hash.slice(-16);
           transferInfo.nonce = nonce
           await this.constructTx(
@@ -370,6 +371,7 @@ export default {
                 } else {
                   // 异构链转入手续费
                   updateTx.feeTxHash = res.hash;
+                  this.updateTx(updateTx, true)
                 }
               } else {
                 if (updateTx.feeTxHash && !updateTx.convertTxHex) {
@@ -427,13 +429,13 @@ export default {
     /**
      * 更新广播交易
      */
-    async updateTx(data) {
+    async updateTx(data, noMsg = false) {
       data = { seed: this.transferID, ...data }
       const res = await this.$request({
         url: "/tx/bridge/update/tx",
         data: data
       });
-      if (this.destroyed) return
+      if (this.destroyed || noMsg) return
       if (res.code === 1000) {
         this.$message({
           message: this.$t("tips.tips1"),

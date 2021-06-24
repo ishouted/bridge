@@ -155,7 +155,7 @@ export class NTransfer {
         assetsId: transferInfo.assetsId,
         amount: transferInfo.amount,
         locked: 0,
-        nonce: nonce
+        nonce:  transferInfo.nonce || nonce // 闪兑资产和跨链资产一样，闪兑后nonce值使用hash后16位
       });
       inputs.push({
         address: transferInfo.from,

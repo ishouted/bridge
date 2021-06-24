@@ -104,7 +104,7 @@
     </div>
     <div class="powered-by">
       <p>Powered By SWFT</p>
-      <p>Wechat Support：SWFT888</p>
+      <p>Wechat Support：swftcoin</p>
     </div>
     <el-dialog
       :title="$t('home.home6')"
@@ -114,9 +114,10 @@
       top="10vh"
       class="assets-list-dialog"
     >
-      <ul v-if="dialogCoinList.length">
+      <el-input v-model="searchVal" :placeholder="$t('home.home24')" class="search-input"></el-input>
+      <ul v-if="filteredList.length">
         <li
-          v-for="item in dialogCoinList"
+          v-for="item in filteredList"
           :key="item.coinId"
           @click="selectAsset(item)"
           :class="checkActive(item)"
@@ -299,6 +300,8 @@ export default {
       platformAddress: "", //swft兑换地址
       estimatedAmount: "", // 扣除手续费后预估到账数量
       transferFee: 0, // 发送交易消耗的手续费
+      searchVal: "",
+      filteredList: []
     }
   },
 
@@ -319,9 +322,9 @@ export default {
     dialogType(val) {
       if (!val) return;
       if (val === "from") {
-        this.dialogCoinList = this.fromCoinList;
+        this.filteredList = this.dialogCoinList = this.fromCoinList;
       } else {
-        this.dialogCoinList = this.toCoinList;
+        this.filteredList = this.dialogCoinList = this.toCoinList;
       }
     },
     address: {
@@ -352,6 +355,25 @@ export default {
         }
       },
     },
+    dialogCoinList: {
+      deep: true,
+      handler(val) {
+        this.filteredList = [...val]
+      }
+    },
+    searchVal(val) {
+      if (val) {
+        this.filteredList = this.dialogCoinList.filter(v => {
+          const search  = val.toUpperCase();
+          const symbol = v.symbol.toUpperCase()
+          const contractAddress = v.contractAddress.toUpperCase();
+          // console.log(search, symbol, contractAddress, 45)
+          return symbol.indexOf(search) > -1 || contractAddress.indexOf(search) > -1
+        })
+      } else {
+        this.filteredList = this.dialogCoinList
+      }
+    }
   },
 
 
@@ -476,7 +498,7 @@ export default {
           v.assetId = v.contact ? 0 : chain.assetId */
           v.contractAddress = v.contact
         })
-        this.supportList = coins;
+        this.supportList = coins.sort((a, b) => a.symbol > b.symbol ? 1 : -1);
         this.fromCoinList = this.dialogCoinList = this.supportList.filter(v => v.chain === this.fromNetwork);
       }
     },
@@ -546,7 +568,8 @@ export default {
     },
     showDialog(dialogType) {
       this.dialogType = dialogType;
-      this.assetListModal = true
+      this.assetListModal = true;
+      this.searchVal = ""
     },
     checkActive(item) {
       if (this.dialogType === "from") {

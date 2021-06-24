@@ -36,6 +36,7 @@ const en = {
     home21: "Send",
     home22: "Receive",
     home23: "All fees are charged by the third-party platform, NerveBridge charge no fees",
+    home24: "Enter the token symbol or address",
   },
   public: {
     amount: "Amount",
@@ -67,6 +68,7 @@ const en = {
     txDetail1: "Detail",
     txDetail2: "(Transfer swap fee)",
     txDetail3: "(Swap withdrawal fee)",
+    txDetail4: "To resend",
   },
   transfer: {
     transfer1: "Transfer",

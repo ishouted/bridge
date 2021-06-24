@@ -684,6 +684,14 @@ export default {
       padding: 5px 20px 15px;
     }
   }
+  .search-input {
+    margin: 10px 0;
+    .el-input__inner {
+      border-radius: 20px;
+      height: 40px;
+      line-height: 40px;
+    }
+  }
   li {
     display: flex;
     // justify-content: space-between;

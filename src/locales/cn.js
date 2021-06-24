@@ -36,6 +36,7 @@ const cn = {
     home21: "发送",
     home22: "接收",
     home23: "所有手续费由第三方平台收取，NerveBridge未收取任何费用",
+    home24: "输入代币名称或合约地址",
   },
   public: {
     amount: "数量",
@@ -67,6 +68,7 @@ const cn = {
     txDetail1: "交易详情",
     txDetail2: "(转入闪兑手续费)",
     txDetail3: "(闪兑提现手续费)",
+    txDetail4: "重新发送",
   },
   transfer: {
     transfer1: "转账",
