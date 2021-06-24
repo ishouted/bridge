@@ -39,7 +39,7 @@
         :value="amount"
         @input="validateAmount"
       >
-        <span
+        <div
           class="select-asset-btn fw"
           slot="prepend"
           @click="assetListModal = true"
@@ -50,21 +50,21 @@
           <template v-else>
             <!-- <span> -->
             <img
+              class="logo-img"
               :src="getLogoSrc(chooseAsset.symbol)"
               @error="replaceImg"
               alt=""
             />
-            <span class="asset-info-wrap">
-              {{ chooseAsset.symbol }}
-              <br/>
+            <div class="asset-info-wrap">
+              <span>{{ chooseAsset.symbol }}</span>
               <span class="origin-chain">{{ chooseAsset.registerChain }}</span>
-            </span>
+            </div>
             <!-- {{ chooseAsset.symbol }}<span class="origin-chain">{{ "(" + chooseAsset.registerChain + ")" }}</span> -->
             <!-- {{ chooseAsset.symbol + "(" + chooseAsset.registerChain + ")" }} -->
             <!-- </span> -->
           </template>
           <i class="el-icon-caret-bottom fw"></i>
-        </span>
+        </div>
         <!-- <el-button slot="append">MAX</el-button> -->
       </el-input>
     </div>
@@ -129,9 +129,10 @@
       top="10vh"
       class="assets-list-dialog"
     >
-      <ul v-if="assetsList.length">
+      <el-input v-model="searchVal" :placeholder="$t('home.home24')" class="search-input"></el-input>
+      <ul v-if="filteredList.length">
         <li
-          v-for="item in assetsList"
+          v-for="item in filteredList"
           :key="item.id"
           @click="selectAsset(item)"
           :class="{ active: chooseAsset && chooseAsset.id === item.id }"
@@ -221,6 +222,8 @@ export default {
       amountMsg: "", //转账数量验证失败信息
       crossInAuth: false, //异构链转入nerve是否需要授权
       speedUpFee: false, //是否加速
+      searchVal: "",
+      filteredList: []
     }
   },
 
@@ -272,6 +275,24 @@ export default {
     },
     speedUpFee() {
       this.getTransferFee();
+    },
+    assetListModal(val) {
+      if (!val) {
+        this.searchVal = ""
+      }
+    },
+    searchVal(val) {
+      if (val) {
+        this.filteredList = this.assetsList.filter(v => {
+          const search  = val.toUpperCase();
+          const symbol = v.symbol.toUpperCase()
+          const contractAddress = v.contractAddress.toUpperCase();
+          // console.log(search, symbol, contractAddress, 45)
+          return symbol.indexOf(search) > -1 || contractAddress.indexOf(search) > -1
+        })
+      } else {
+        this.filteredList = this.assetsList
+      }
     }
   },
 
@@ -353,7 +374,14 @@ export default {
         },
       });
       if (res.code === 1000) {
-        this.assetsList = res.data;
+        res.data.map(v => {
+          // 去除ETH资产contractAddress为ETH
+          v.contractAddress = v.contractAddress && v.assetId !== 1 ? v.contractAddress : "";
+        })
+        this.assetsList = res.data.sort((a, b) => {
+          return a.symbol > b.symbol ? 1 : -1
+        });
+        this.filteredList = [...this.assetsList];
       }
     },
     // 下拉选择资产
@@ -598,7 +626,8 @@ export default {
         isToken
       );
       let nvtFee = divisionDecimals(res, 8); // 异构跨链手续费-nvt
-      nvtFee = this.speedUpFee ? Number(nvtFee) + 3 : nvtFee;
+      // console.log(nvtFee, 66)
+      nvtFee = this.speedUpFee ? Number(nvtFee) * 1.5 : nvtFee * 1.2;
       this.withdrawalNVTFee = nvtFee;
       // nerve链上nvt余额
       const nvtBalance = this.getNvtBalanceInfo()

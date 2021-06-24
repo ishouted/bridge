@@ -1,7 +1,7 @@
 import nerve from 'nerve-sdk-js'
 import {BigNumber} from 'bignumber.js'
 import copy from 'copy-to-clipboard'
-import { MAIN_INFO, ETHNET} from '@/config.js'
+import { MAIN_INFO, NULS_INFO, ETHNET} from '@/config.js'
 import { post, request } from './https'
 
 /**
@@ -559,12 +559,12 @@ export function getLogoSrc(symbol) {
 
 
 export const supportChainList = [
-  { label: "NERVE", value: "NERVE", symbol: "NVT" },
-  { label: "NULS", value: "NULS", symbol:"NULS" },
-  { label: "Ethereum", value: "Ethereum", symbol:"ETH", ropsten: "0x3", homestead: "0x1" },
-  { label: "BSC", value: "BSC", symbol:"BNB", ropsten: "0x61", homestead: "0x38" },
-  { label: "Heco", value: "Heco", symbol:"HT", ropsten: "0x100", homestead: "0x80" },
-  { label: "OKExChain", value: "OKExChain", symbol:"OKT", ropsten: "0x41", homestead: "0x42" }
+  { label: "NERVE", value: "NERVE", symbol: "NVT", SwftChain: "NERVE", chainId: MAIN_INFO.chainId, assetId: MAIN_INFO.assetId },
+  { label: "NULS", value: "NULS", symbol:"NULS", SwftChain: "NULS", chainId: NULS_INFO.chainId, assetId: NULS_INFO.assetId },
+  { label: "Ethereum", value: "Ethereum", symbol:"ETH", ropsten: "0x3", SwftChain: "ETH", homestead: "0x1", chainId: 101, assetId: 1 },
+  { label: "BSC", value: "BSC", symbol:"BNB", ropsten: "0x61", homestead: "0x38", SwftChain: "BSC", chainId: 102, assetId: 1 },
+  { label: "Heco", value: "Heco", symbol:"HT", ropsten: "0x100", homestead: "0x80", SwftChain: "HECO", chainId: 103, assetId: 1 },
+  { label: "OKExChain", value: "OKExChain", symbol:"OKT", ropsten: "0x41", homestead: "0x42", SwftChain: "OKT", chainId: 104, assetId: 1 }
 ];
 
 export function debounce(fn, delay) {

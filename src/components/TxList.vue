@@ -2,27 +2,42 @@
   <div class="tx-list">
     <ul class="list" v-infinite-scroll="load" infinite-scroll-disabled="disabled">
       <li v-for="(item,index) in oldList" :key="index" @click="handleClick(item)">
-        <div class="top">
-          <div class="chain">
-            <span>{{item.fromChain }}</span>
-            <i class="iconfont icon-to"></i>
-            <span>{{ item.toChain }}</span>
+        <template v-if="!isSwft">
+          <div class="top">
+            <div class="chain">
+              <span>{{item.fromChain }}</span>
+              <i class="iconfont icon-to"></i>
+              <span>{{ item.toChain }}</span>
+            </div>
+            <div class="amount">
+              {{ parseFloat(item.amount) }} {{ item.symbol }}
+            </div>
           </div>
-          <div class="amount">
-            {{ parseFloat(item.amount) }} {{ item.symbol }}
+          <div class="bottom">
+            <div class="time">{{ item.createTime }}</div>
+            <div class="status">
+              <!-- {{ getTxStatus(item.status) }} -->
+              <img src="../assets/img/tx-pending.svg" alt="" v-if="checkStatus(item.status)">
+            </div>
           </div>
-        </div>
-        <div class="bottom">
-          <div class="time">{{ item.createTime }}</div>
-          <div class="status">
-            <!-- {{ getTxStatus(item.status) }} -->
-            <img src="../assets/img/tx-pending.svg" alt="" v-if="checkStatus(item.status)">
+        </template>
+        <template v-else>
+          <div class="top">
+            <div class="chain">
+              <span>{{item.depositCoinAmt}} {{item.depositCoinCode }}</span>
+              <i class="iconfont icon-to" style="margin: 0 10px"></i>
+              <span>{{item.receiveCoinAmt}} {{ item.receiveCoinCode }}</span>
+            </div>
           </div>
-        </div>
+          <div class="bottom" style="marginTop: 8px">
+            <div class="time">{{ item.createTime }}</div>
+          </div>
+        </template>
+        
       </li>
     </ul>
-    <p class="load-tip" v-if="loading">{{$t('public.loading')}}...</p>
-    <p class="load-tip" v-if="noMore">{{$t('public.noMore')}}</p>
+    <p class="load-tip" v-if="loading">{{$t('public.loading')}}</p>
+    <p class="load-tip" v-if="oldList.length && noMore">{{$t('public.noMore')}}</p>
   </div>
 </template>
 
@@ -39,7 +54,11 @@
         type: Boolean,
         default: true
       },
-      total: [String, Number]
+      total: [String, Number],
+      isSwft: {
+        type: Boolean,
+        default: false
+      }
     },
     data() {
       // this.failStatus = [4, 7, 9]
@@ -49,27 +68,31 @@
     },
     computed: {
       noMore() {
-        return this.oldList.length && this.oldList.length >= this.total;
+        return this.oldList.length >= this.total;
       },
       disabled() {
         return this.loading || this.noMore;
       }
     },
     watch: {
-      "list": function (val) {
-        if (val.length !== 0) {
-          for (let item of val) {
-            item.amount = tofix(item.amount, 6, 1)
+      list: {
+        immediate: true,
+        handler(val) {
+          if (!val) return;
+          if (val.length !== 0) {
+            for (let item of val) {
+              item.amount = tofix(item.amount, 6, 1)
+            }
+            if (this.oldList.length !== 0) {
+              this.oldList = [...this.oldList, ...val];
+            } else {
+              this.oldList = val;
+            }
+          }else{
+            this.oldList = [];
           }
-          if (this.oldList.length !== 0) {
-            this.oldList = [...this.oldList, ...val];
-          } else {
-            this.oldList = val;
-          }
-        }else{
-          this.oldList = [];
+          // console.log(this.oldList, 66);
         }
-        // console.log(this.oldList);
       }
     },
     methods: {
@@ -83,6 +106,7 @@
       },
 
       load() {
+        // console.log(this.oldList, 66)
         this.$emit("loadMoreTx");
       },
       checkStatus(status) {
@@ -108,8 +132,8 @@
 <style lang="less" scoped>
   .tx-list {
     overflow: auto;
-    // height: 100%;
-    height: calc(100% - 30px);
+    // height: calc(100% - 30px);
+    height: calc(100% - 45px);
     ul {
       margin-top: 20px;
       border-top: 1px solid #E9EBF3;

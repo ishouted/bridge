@@ -26,8 +26,8 @@
             <el-radio-button label="swap">{{ $t("home.home13") }}</el-radio-button>
             <el-radio-button label="nerve">{{ $t("home.home14") }}</el-radio-button>
           </el-radio-group>
-        </div>
-        <swft-swap v-show="swapType==='swap'"></swft-swap>
+        </div> -->
+        <tab-switch v-model="swapType"></tab-switch>
         <nerve-swap
           v-show="swapType==='nerve'"
           :address="address"
@@ -36,15 +36,25 @@
           :fromNetwork="fromNetwork"
           :fromChainId="fromChainId"
           :fromAddress="fromAddress"
-        ></nerve-swap> -->
-        <nerve-swap
+        ></nerve-swap>
+        <swft-swap
+          v-show="swapType==='swft'"
           :address="address"
           :walletType="walletType"
           :provider="provider"
           :fromNetwork="fromNetwork"
           :fromChainId="fromChainId"
           :fromAddress="fromAddress"
-        ></nerve-swap>
+        >
+        </swft-swap>
+        <!-- <nerve-swap
+          :address="address"
+          :walletType="walletType"
+          :provider="provider"
+          :fromNetwork="fromNetwork"
+          :fromChainId="fromChainId"
+          :fromAddress="fromAddress"
+        ></nerve-swap> -->
       </div>
     </div>
   </div>
@@ -52,6 +62,7 @@
 
 <script>
 import HeaderBar from "@/components/HeaderBar";
+import TabSwitch from "@/components/TabSwitch";
 import SwftSwap from "./SwftSwap";
 import NerveSwap from "./NerveSwap";
 import { MAIN_INFO, NULS_INFO, ETHNET } from "@/config";
@@ -81,7 +92,7 @@ export default {
       supportListShow: true, //显示可连接钱包列表
       showSign: true, //显示派生地址
       address: "", //metamask当前选中地址
-      swapType: "swap",
+      swapType: "nerve",
       provider: null,
       fromChainId: "",
       walletType: sessionStorage.getItem("walletType"), // 连接钱包类型 metamask walletConnect
@@ -91,7 +102,8 @@ export default {
   components: {
     HeaderBar,
     SwftSwap,
-    NerveSwap
+    NerveSwap,
+    TabSwitch
   },
 
   watch: {
@@ -104,7 +116,7 @@ export default {
         const chainLength = Object.keys(config).length;
         const addressListLength = currentAccount ? Object.keys(currentAccount.address).length : 0
         // this.showSign = currentAccount ? false : true;
-        this.showSign = chainLength !== addressListLength
+        this.showSign = !chainLength || chainLength !== addressListLength
       },
     },
     fromChainId: {
@@ -348,7 +360,7 @@ export default {
           }
         }
       } catch (e) {
-        console.log(e, 556)
+        // console.log(e, 556)
         this.address = "";
         this.$message({ message: this.$t("tips.tips5"), type: "warning" });
       }
@@ -391,7 +403,7 @@ export default {
   .home-content {
     background-color: #fff;
     margin: 15px;
-    padding: 15px;
+    padding: 25px 15px;
     min-height: calc(100% - 94px);
     border-radius: 10px;
   }
@@ -554,14 +566,12 @@ export default {
       &:hover {
         background-color: rgb(224, 217, 235);
       }
-      img {
+      /* img {
         width: 30px;
         height: 30px;
         margin-right: 5px;
       }
-      .asset-info-wrap {
-
-      }
+      
       .origin-chain {
         display: inline-block;
         border: 1px solid #5BCAF9;
@@ -574,7 +584,7 @@ export default {
         transform: scale(0.8);
         min-width: 50px;
         text-align: center;
-      }
+      } */
     }
     .el-input-group__prepend {
       .el-select .el-input {
@@ -600,12 +610,19 @@ export default {
     .el-input__inner {
       background-color: @BColor !important;
       border: none !important;
-      font-weight: bold;
-      color: #99a3c4 !important;
+      /* font-weight: bold;
+      color: #99a3c4 !important; */
+      font-size: 16px;
+      font-weight: normal !important;
+      color: #515B7D !important;
       &::-webkit-input-placeholder {
+        font-weight: normal;
+        color: #515B7D !important;
+      }
+     /*  &::-webkit-input-placeholder {
         font-weight: bold;
         color: #99a3c4;
-      }
+      } */
     }
   }
   .fee {
@@ -628,13 +645,35 @@ export default {
   }
 
   .btn-wrap {
-    width: 90%;
+    width: 100%;
     margin: 20px auto 0;
     .el-button {
       width: 100%;
       border-radius: 10px;
       padding: 16px 20px;
     }
+  }
+  .asset-info-wrap {
+    display: flex;
+    flex-direction: column;
+  }
+  .logo-img {
+    width: 30px;
+    height: 30px;
+    margin-right: 5px;
+  }
+  .origin-chain {
+    display: inline-block;
+    border: 1px solid #5BCAF9;
+    border-radius: 2px;
+    padding: 1px 5px;
+    font-size: 12px;
+    font-weight: normal;
+    // margin-left: -6px;
+    color: #5BCAF9;
+    transform: translateX(-10%) scale(0.8);
+    min-width: 50px;
+    text-align: center;
   }
 }
 .assets-list-dialog {
@@ -643,6 +682,14 @@ export default {
     overflow: auto;
     .el-dialog__body {
       padding: 5px 20px 15px;
+    }
+  }
+  .search-input {
+    margin: 10px 0;
+    .el-input__inner {
+      border-radius: 20px;
+      height: 40px;
+      line-height: 40px;
     }
   }
   li {

@@ -155,7 +155,7 @@ export class NTransfer {
         assetsId: transferInfo.assetsId,
         amount: transferInfo.amount,
         locked: 0,
-        nonce: nonce
+        nonce:  transferInfo.nonce || nonce // 闪兑资产和跨链资产一样，闪兑后nonce值使用hash后16位
       });
       inputs.push({
         address: transferInfo.from,
@@ -386,10 +386,30 @@ const RPC_URL = {
 const CROSS_OUT_ABI = [
   "function crossOut(string to, uint256 amount, address ERC20) public payable returns (bool)"
 ];
+// token授权
 const ERC20_ABI = [
   "function allowance(address owner, address spender) external view returns (uint256)",
   "function approve(address spender, uint256 amount) external returns (bool)"
 ];
+
+// 查询余额
+const erc20BalanceAbiFragment = [{
+  "constant": true,
+  "inputs": [{"name": "", "type": "address"}],
+  "name": "balanceOf",
+  "outputs": [{"name": "", "type": "uint256"}],
+  "type": "function"
+}]
+
+// token转账
+const erc20TransferAbiFragment = [{
+  name: "transfer",
+  type: "function",
+  inputs: [{"name": "_to", "type": "address"}, {"type": "uint256", "name": "_tokens"}],
+  constant: false,
+  outputs: [],
+  payable: false
+}];
 
 export class ETransfer {
 
@@ -409,17 +429,12 @@ export class ETransfer {
       }
     }
   }
-  
-  /* getProvider(chain, network) {
-    const ETHNET = network === "main" ? "homestead" : "ropsten";
-    if (chain === "Ethereum") {
-      return ethers.getDefaultProvider(ETHNET);
-    } else {
-      return new ethers.providers.JsonRpcProvider(RPC_URL[chain][ETHNET]);
-    }
-  } */
 
   decodeData(data) {
+    /* const commonTransferABI = ["function transfer(address recipient, uint256 amount)"] // eth等链发起的交易
+    // CROSS_OUT_ABI nerve链发起的跨链转入交易
+    const ABI = fromNerve ? CROSS_OUT_ABI : commonTransferABI
+    const iface = new ethers.utils.Interface(ABI);  */
     const iface = new ethers.utils.Interface(["function transfer(address recipient, uint256 amount)"]);
     const txInfo = iface.parseTransaction({data});
     //const decode = iface.functions["transfer(address,uint256)"].decode(data);
@@ -479,6 +494,58 @@ export class ETransfer {
     return await this.sendTransaction(transactionParameters)
   }
 
+  // 普通链内转账
+  async commonTransfer(params) {
+    const wallet = await this.provider.getSigner();
+    const nonce = await wallet.getTransactionCount();
+    if (params.contractAddress) {
+      const contract = new ethers.Contract(params.contractAddress, erc20TransferAbiFragment, wallet);
+      const numberOfTokens = ethers.utils.parseUnits(params.value, params.decimals);
+      const transaction = { nonce };
+      /* console.log("to: ", params.to)
+      console.log("numberOfTokens: ", numberOfTokens)
+      console.log("transaction: ", transaction) */
+      return await contract.transfer(params.to, numberOfTokens, transaction);
+    } else {
+      // 非token转账
+      const value = ethers.utils.parseEther(params.value);
+      const transaction = {nonce, to: params.to, value};
+      /* if (params.upSpeed) {
+        transaction.gasPrice = await this.getSpeedUpGasPrice();
+      } */
+      // console.log("transaction: ", transaction)
+      return await wallet.sendTransaction(transaction);
+    }
+  }
+
+  getEthBalance(address) {
+    let balancePromise = this.provider.getBalance(address);
+    return balancePromise.then((balance) => {
+      return ethers.utils.formatEther(balance)
+    }).catch(e => {
+      // console.error('获取余额失败' + e)
+      throw new Error("获取余额失败" + e)
+    });
+  }
+
+  /**
+ * ERC20合约余额
+ * @param contractAddress ERC20合约地址
+ * @param tokenDecimals token小数位数
+ * @param address 账户地址
+ */
+  getERC20Balance(contractAddress, tokenDecimals, address) {
+    let contract = new ethers.Contract(contractAddress, erc20BalanceAbiFragment, this.provider);
+    let balancePromise = contract.balanceOf(address);
+    return balancePromise.then((balance) => {
+      console.log(balance, 123456)
+      return ethers.utils.formatUnits(balance, tokenDecimals);
+    }).catch(e => {
+      // console.error('获取ERC20余额失败' + e)
+      throw new Error("获取余额失败" + e)
+    });
+  }
+
   //验证交易参数
   async validate(tx) {
     try {
@@ -492,208 +559,8 @@ export class ETransfer {
   async sendTransaction(tx) {
     const wallet = this.provider.getSigner();
     return await wallet.sendTransaction(tx);
-    /* try {
-      const res = await wallet.sendTransaction(tx);
-      if (res.hash) {
-        return {success: true, msg: res.hash}
-      }
-    } catch (e) {
-      return {success: false, msg: e}
-    } */
   }
 
-  async getWallet() {
-    /* const encryptPassword = (await ExtensionPlatform.get("password")).password;
-    const password = decryptPassword(encryptPassword);
-    const accountList = (await ExtensionPlatform.get("accountList")).accountList;
-    const currentAccount = accountList.filter(v => v.selection)[0];
-    const pri = getPri(currentAccount.aesPri, password);
-    const privateKey = ethers.utils.hexZeroPad(ethers.utils.hexStripZeros("0x" + pri), 32);
-    return new ethers.Wallet(privateKey, this.provider); */
-  }
-
-  async sendTransactionByTxHex(params) {
-    const txHex = await this.getTxHex(params);
-    const tx = await this.provider.sendTransaction(txHex);
-    // console.log(tx, 99966);
-    return tx;
-  }
-
-  /**
-   * 链内交易签名 不会自动填充gaslimit、gasprice等值
-   * to 交易地址
-   * value 转账金额
-   * upSpeed 是否加速
-   * contractAddress token交易时合约地址
-   * tokenDecimals token decimals
-   */
-  async getTxHex(params) {
-    const wallet = await this.getWallet();
-    const nonce = await wallet.getTransactionCount();
-    const gasPrice = await this.provider.getGasPrice();
-    const gasLimit = params.contractAddress ? "100000" : "33594";
-    const transaction = {nonce, gasLimit: Number(gasLimit), gasPrice};
-    if (params.contractAddress) {
-      // token转账
-      const numberOfTokens = ethers.utils.parseUnits(params.value, params.tokenDecimals);
-      const iface = new ethers.utils.Interface(["function transfer(address recipient, uint256 amount)"]);
-      const data = iface.functions["transfer(address,uint256)"].encode([params.to, numberOfTokens]);
-      transaction.to = params.contractAddress;
-      transaction.data = data;
-      if (params.upSpeed) {
-        transaction.gasPrice = await this.getSpeedUpGasPrice();
-      }
-      return wallet.sign(transaction);
-    } else {
-      // 非token转账
-      const value = ethers.utils.parseEther(params.value);
-      transaction.to = params.to;
-      transaction.value = value;
-
-      if (params.upSpeed) {
-        transaction.gasPrice = await this.getSpeedUpGasPrice();
-      }
-      console.log(transaction, 888);
-      return await wallet.sign(transaction);
-    }
-  }
-
-  /**
-   * 链内交易签名 gaslimit、gasprice
-   * to 交易地址
-   * value 转账金额
-   * gaslimit
-   * gasprice
-   * contractAddress token交易时合约地址
-   * tokenDecimals token decimals
-   */
-  async getTxHexTwo(params) {
-    console.log(params);
-    const wallet = await this.getWallet();
-    const nonce = await wallet.getTransactionCount();
-    const gasPrice = Number(params.gasPrice);
-    const gasLimit = Number(params.gasLimit);
-    const transaction = {nonce, gasLimit: Number(gasLimit), gasPrice};
-    if (params.contractAddress) {
-      // token转账
-      const numberOfTokens = ethers.utils.parseUnits(params.value, params.tokenDecimals);
-      const iface = new ethers.utils.Interface(["function transfer(address recipient, uint256 amount)"]);
-      const data = iface.functions["transfer(address,uint256)"].encode([params.to, numberOfTokens]);
-      transaction.to = params.contractAddress;
-      transaction.data = data;
-      return wallet.sign(transaction);
-    } else {
-      // 非token转账
-      const value = ethers.utils.parseEther(params.value);
-      transaction.to = params.to;
-      transaction.value = value;
-      console.log(transaction, 6666);
-      return await wallet.sign(transaction);
-    }
-  }
-
-  /**
-   * 跨链转入交易签名
-   * to nerve地址
-   * value 转账金额
-   * upSpeed 是否加速
-   * multySignAddress 多签地址
-   * contractAddress token交易时合约地址
-   * tokenDecimals token decimals
-   */
-  async getCrossInTxHex(params) {
-    const wallet = await this.getWallet();
-    const nonce = await wallet.getTransactionCount();
-    const gasPrice = await this.provider.getGasPrice();
-    const gasLimit = params.contractAddress ? "100000" : "33594";
-    const transaction = {to: params.multySignAddress, nonce, gasLimit: Number(gasLimit), gasPrice};
-    const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
-    if (params.contractAddress) {
-      // token转账
-      const numberOfTokens = ethers.utils.parseUnits(
-        params.value,
-        params.tokenDecimals
-      );
-      const data = iface.functions.crossOut.encode([params.to, numberOfTokens, params.contractAddress]);
-      transaction.from = params.from;
-      transaction.value = "0x00";
-      transaction.data = data;
-      if (params.upSpeed) {
-        transaction.gasPrice = await this.getSpeedUpGasPrice();
-      }
-      const failed = await this.validate(transaction);
-      if (failed) {
-        console.error("failed: " + failed);
-        return null;
-      }
-      delete transaction.from; //etherjs 4.0 from参数无效 报错
-      return wallet.sign(transaction);
-    } else {
-      // 非token转账
-      const value = ethers.utils.parseEther(params.value);
-      const data = iface.functions.crossOut.encode([params.to, value, "0x0000000000000000000000000000000000000000"]);
-      transaction.value = value;
-      transaction.data = data;
-      if (params.upSpeed) {
-        transaction.gasPrice = await this.getSpeedUpGasPrice();
-      }
-      const failed = await this.validate(transaction);
-      if (failed) {
-        console.error("failed: " + failed);
-        return null;
-      }
-      console.log(transaction, 888);
-      return await wallet.sign(transaction);
-    }
-  }
-
-  /**
-   * 跨链转入交易签名2 传入 gasPrice gasLimit
-   * to nerve地址
-   * value 转账金额
-   * gasPrice
-   * gasLimit
-   * multySignAddress 多签地址
-   * contractAddress token交易时合约地址
-   * tokenDecimals token decimals
-   */
-  async getCrossInTxHexTwo(params) {
-    // console.log(params);
-    const wallet = await this.getWallet();
-    const nonce = await wallet.getTransactionCount();
-    const gasPrice = Number(params.gasPrice);
-    const gasLimit = Number(params.gasLimit);
-    const transaction = {to: params.multySignAddress, nonce, gasLimit: Number(gasLimit), gasPrice};
-    const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
-    if (params.contractAddress) {
-      // token转账
-      const numberOfTokens = ethers.utils.parseUnits(params.value, params.tokenDecimals);
-      const data = iface.functions.crossOut.encode([params.to, numberOfTokens, params.contractAddress]);
-      transaction.from = params.from;
-      transaction.value = "0x00";
-      transaction.data = data;
-      const failed = await this.validate(transaction);
-      if (failed) {
-        console.error("failed: " + failed);
-        return null;
-      }
-      delete transaction.from; //etherjs 4.0 from参数无效 报错
-      return wallet.sign(transaction);
-    } else {
-      // 非token转账
-      const value = ethers.utils.parseEther(params.value);
-      const data = iface.functions.crossOut.encode([params.to, value, "0x0000000000000000000000000000000000000000"]);
-      transaction.value = value;
-      transaction.data = data;
-      const failed = await this.validate(transaction);
-      if (failed) {
-        console.error("failed: " + failed);
-        return null;
-      }
-      console.log(transaction, 999);
-      return await wallet.sign(transaction);
-    }
-  }
 
   /**
    * 查询erc20资产授权额度
@@ -734,42 +601,6 @@ export class ETransfer {
     return this.sendTransaction(transactionParameters)
   }
 
-  /**
-   * 授权erc20额度签名
-   * @param contractAddress ERC20合约地址
-   * @param multySignAddress 多签地址
-   * @param address 账户eth地址
-   */
-  async getApproveERC20Hex(contractAddress, multySignAddress, address) {
-    const wallet = await this.getWallet();
-    const nonce = await wallet.getTransactionCount();
-    const gasPrice = await this.provider.getGasPrice();
-    const gasLimit = "100000";
-
-    const iface = new ethers.utils.Interface(ERC20_ABI);
-    const data = iface.functions.approve.encode([
-      multySignAddress,
-      new ethers.utils.BigNumber("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
-    ]);
-    const transaction = {
-      to: contractAddress,
-      from: address,
-      value: "0x00",
-      data: data,
-      nonce,
-      gasLimit: Number(gasLimit),
-      gasPrice
-    };
-    const failed = await this.validate(transaction);
-    if (failed) {
-      console.error("failed approveERC20" + failed);
-      return null;
-    }
-    delete transaction.from;
-    return await wallet.sign(transaction);
-    // delete transaction.from   //etherjs 4.0 from参数无效 报错
-    // return wallet.sendTransaction(transaction);
-  }
 
   // 获取手续费
   getGasPrice(gasLimit) {

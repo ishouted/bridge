@@ -3,6 +3,7 @@
     <back-bar :backTitle="$t('transfer.transfer1')"></back-bar>
     <div class="content">
       <div class="content-inner">
+        <div class="sign-tips">{{ $t("transfer.transfer7") }}</div>
         <div class="step-list">
           <div
             class="step"
@@ -91,7 +92,6 @@ export default {
           NULSContracInfo, // nuls 合约token跨链
           crossInForSwapInfo, // 闪兑资产
           swapInfo, // 闪兑交易
-          isTransferMainAsset, // 跨链资产是否是来源链的主资产
         } = this.sessionInfo;
         if (fromChain === "NERVE") {
           let type, transferInfo;
@@ -172,7 +172,10 @@ export default {
         this.runTransfer();
       } catch (e) {
         console.log(e, "===组装交易失败===");
-        this.$message({ message: this.$t("tips.tips6"), type: "warning" });
+        this.$message({ message: this.$t("tips.tips6"), type: "warning", duration: 2000 });
+        setTimeout(() => {
+          this.$router.push("/")
+        }, 2000)
       }
       this.loading = false;
     },
@@ -227,6 +230,7 @@ export default {
           const tAssemble = new txs.Transaction();
           tAssemble.parse(bufferReader);
           const hash = tAssemble.getHash().toString("hex");
+          // console.log(hash, "====hash====")
           const nonce = hash.slice(-16);
           transferInfo.nonce = nonce
           await this.constructTx(
@@ -367,6 +371,7 @@ export default {
                 } else {
                   // 异构链转入手续费
                   updateTx.feeTxHash = res.hash;
+                  this.updateTx(updateTx, true)
                 }
               } else {
                 if (updateTx.feeTxHash && !updateTx.convertTxHex) {
@@ -390,10 +395,10 @@ export default {
       } catch (e) {
         console.error("error: " + e);
         if (this.destroyed) return;
-        this.$message({ message: this.$t("tips.tips6"), type: "warning" });
+        this.$message({ message: this.$t("tips.tips6"), type: "warning", duration: 2000 });
         setTimeout(() => {
           this.$router.push("/")
-        }, 3000)
+        }, 2000)
       }
     },
     //广播nerve nuls跨链转账交易
@@ -424,13 +429,13 @@ export default {
     /**
      * 更新广播交易
      */
-    async updateTx(data) {
+    async updateTx(data, noMsg = false) {
       data = { seed: this.transferID, ...data }
       const res = await this.$request({
         url: "/tx/bridge/update/tx",
         data: data
       });
-      if (this.destroyed) return
+      if (this.destroyed || noMsg) return
       if (res.code === 1000) {
         this.$message({
           message: this.$t("tips.tips1"),
@@ -453,6 +458,11 @@ export default {
 </script>
 <style lang="less">
 .transfer {
+  .sign-tips {
+    font-size: 14px;
+    padding: 20px 0;
+    color: #99a3c4;
+  }
   .step {
     display: flex;
     height: 80px;
@@ -469,6 +479,8 @@ export default {
         }
       }
       .right span {
+        // color: #000;
+        // font-weight: 600;
         color: #5bcaf9;
       }
     }
@@ -512,6 +524,8 @@ export default {
       span {
         display: inline-block;
         font-size: 14px;
+        color: #000;
+        font-weight: 600;
       }
       i {
         margin-left: 5px;

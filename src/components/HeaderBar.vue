@@ -2,12 +2,35 @@
   <div class="header">
     <div class="left">
       <img src="../assets/img/logo.svg" alt="">
-      NerveBridge
+      <!-- NerveBridge -->
     </div>
     <div class="right" v-if="address">
-      <div class="address" @click="showAccountDialog=true">
-        <!-- <span class="network"> {{ network }} </span> -->
-        <span>{{ superLong(address, 5) }}</span>
+      <div class="address">
+        <!-- <el-select v-model="currentChain">
+          <el-option
+            v-for="item in supportChainList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          >
+          </el-option>
+        </el-select> -->
+        <span class="network" @click.stop="showNetworkList=!showNetworkList">
+           {{ $store.state.network }}
+           <i class="el-icon-caret-bottom" style="margin-left: -5px"></i>
+        </span>
+        <span @click="showAccountDialog=true">{{ superLong(address, 5) }}</span>
+        <ul class="support-network-list" v-show="showNetworkList">
+          <li
+            v-for="item in supportChainList"
+            :key="item.value"
+            :class="{'active': item.value === currentChain}"
+            @click="currentChain=item.value"
+          >
+            {{ item.label }}
+          </li>
+          <div class="pop-arrow"></div>
+        </ul>
       </div>
       <span @click="showMenu=true" class="iconfont icon-menu"></span>
     </div>
@@ -47,7 +70,7 @@
               </li>
             </ul>
           </div>
-          <div class="network">
+          <!-- <div class="network">
             <p class="label">{{ $t("header.header5") }}</p>
             <el-radio-group v-model="currentChain" @change="toggleMenu">
               <el-radio-button
@@ -58,17 +81,17 @@
               {{ item.label }}
               </el-radio-button>
             </el-radio-group>
-          </div>
+          </div> -->
           <div class="bottom-wrap">
             <div class="community">
               <a href="https://t.me/NerveNetwork" target="_blank">
                 <img src="../assets/img/Telegram.svg" alt="">
               </a>
-              <a href="https://discord.gg/PBkHeD7" target="_blank">
+              <a href="https://discord.gg/PBkHeD7" target="_blank" style="padding-top: 1px">
                 <img src="../assets/img/Discord.svg" alt="">
               </a>
             </div>
-            <div class="language clicks" @click="lang=lang==='cn' ? 'en' : 'cn'">
+            <div class="language clicks" @click="lang=lang==='cn' ? 'en' : 'cn'" style="padding-top: 3px">
               <!-- <span class="iconfont icon-yuyan"> -->
               <img style="margin: 0 5px 0 10px" src="../assets/img/lang.svg" alt="">
               <span>{{ lang === "cn" ? "EN" : "中文" }}</span>
@@ -104,6 +127,7 @@
     data() {
       this.supportChainList = supportChainList;
       return {
+        showNetworkList: false,
         showMenu: false,
         currentChain: this.$store.state.network,
         lang: localStorage.getItem("lang") || "cn",
@@ -136,6 +160,9 @@
     created() {
     },
     mounted() {
+      window.addEventListener("click", () => {
+        if (this.showNetworkList) this.showNetworkList = false;
+      }, false)
     },
     methods: {
       superLong(str, len = 8) {
@@ -192,11 +219,16 @@
     padding: 0 12px;
     border-bottom: 1px solid #EBF0F3;
     background-color: #fff;
-    img {
+    .left img {
       width: 34px;
       height: 34px;
-      margin-right: 5px;
+      margin-left: 5px;
     }
+    // img {
+    //   width: 34px;
+    //   height: 34px;
+    //   margin-right: 5px;
+    // }
     .left, .right {
       display: flex;
       align-items: center;
@@ -205,21 +237,28 @@
     .right {
       .address {
         // width: 170px;
-        width: 150px;
+        // width: 150px;
         height: 32px;
         line-height: 32px;
-        padding: 0 10px;
+        padding: 0 15px;
         background-color: #EBEEF8;
         color: #5BCAF9;
         font-weight: bold;
         font-size: 14px;
         border-radius: 18px;
         text-align: center;
-        margin-right: 12px;
+        margin-right: 8px;
         cursor: pointer;
+        position: relative;
         .network {
           font-size: 15px;
           color: #99A3C4;
+          // margin-right: 10px;
+          padding: 0 10px 0 5px;
+          &:hover {
+            // background: 
+            opacity: 0.65;
+          }
           &::before {
             content: " ";
             display: inline-block;
@@ -227,8 +266,52 @@
             width: 5px;
             height: 5px;
             border-radius: 50%;
-            margin: 0 2px;
+            // margin: 0 2px;
             background-color: #5BCAF9;
+          }
+        }
+        .support-network-list {
+          position: absolute;
+          left: 20px;
+          z-index: 1;
+          width: 150px;
+          padding: 6px 0;
+          margin-top: 8px;
+          border: 1px solid #e4e7ed;
+          border-radius: 4px;
+          background-color: #fff;
+          box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+          li {
+            padding: 0 20px;
+            text-align: left;
+            &:hover {
+              background-color: #f5f7fa;
+            }
+            &.active {
+              color: #409eff;
+              font-weight: 700;
+            }
+          }
+          .pop-arrow, .pop-arrow:after {
+            position: absolute;
+            display: block;
+            width: 0;
+            height: 0;
+            border-width: 6px;
+            border-top-width: 0;
+            border-color: transparent;
+            border-style: solid;
+          }
+          .pop-arrow {
+            top: -6px;
+            left: 30px;
+            border-bottom-color: #EBEEF5;
+            &:after {
+              content: " ";
+              top: 1px;
+              margin-left: -6px;
+              border-bottom-color: #FFF;
+            }
           }
         }
       }
@@ -364,7 +447,7 @@
 
       .address {
         color: #5BCAF9;
-        font-size: 22px;
+        font-size: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
