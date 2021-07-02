@@ -103,6 +103,7 @@ const en = {
     7: "NERVE broadcast failed",
     8: "Destination chain confirmed",
     9: "Failed",
+    noFee: "No transfer fee", // 未转入闪兑所需手续费
     // 1: "跨链交易发起链已确认",
     // 2: "跨链交易NERVE链已广播交易待确认",
     // 3: "跨链交易NERVE链广播失败",

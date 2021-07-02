@@ -9,10 +9,10 @@
           <div class="status-icon">
             <!-- <i class="iconfont icon-queren"></i> -->
             <img src="../../assets/img/detail-success.svg" alt="" v-if="txInfo.status === 8">
-            <img src="../../assets/img/detail-fail.svg" alt="" v-else-if="failStatus.indexOf(txInfo.status) > -1">
+            <img src="../../assets/img/detail-fail.svg" alt="" v-else-if="failStatus.indexOf(txInfo.status) > -1 || failType === 1">
             <img src="../../assets/img/detail-pending.svg" alt="" v-else>
           </div>
-          <span>{{ $t("crossStatusType." + txInfo.status) }}</span>
+          <span>{{ failType === 1 ? $t("crossStatusType.noFee") : $t("crossStatusType." + txInfo.status) }}</span>
           <!-- <p v-if="failStatus.indexOf(txInfo.status) > -1">{{ txInfo.errorMsg }}</p> -->
         </div>
         <div class="amount">
@@ -176,7 +176,7 @@ export default {
   data () {
     this.timer = null;
     this.failStatus = [4, 7, 9];
-    this.failType = "" ; // 1、需要闪兑，但是未跨入手续费；2、闪兑失败；3、nerve跨出失败
+    // this.failType = "" ; // 1、需要闪兑，但是未跨入手续费；2、闪兑失败；3、nerve跨出失败
     this.swftSuccessStatus = ["receive_complete"];
     this.swftFailStatus = ["timeout", "ERROR/error", "wait_refund_send", "wait_refund_confirm", "refund_complete", "WAIT_KYC"];
     this.swftPendingStatus = ["wait_deposit_send", "wait_exchange_push", "wait_exchange_return", "wait_receive_send", "wait_receive_confirm"];
@@ -190,7 +190,8 @@ export default {
       retryLoading: true,
       currentStep: 1,
       stepList: [],
-      destroyed: false
+      destroyed: false,
+      failType: "", // 1、需要闪兑，但是未跨入手续费；2、闪兑失败；3、nerve跨出失败
     }
   },
 
