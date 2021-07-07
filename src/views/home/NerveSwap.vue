@@ -139,6 +139,7 @@
         >
           <div class="logo-wrap">
             <img :src="getLogoSrc(item.symbol)" @error="replaceImg" alt="" />
+            <!--<img src="https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/N-logo.png" alt="">-->
           </div>
           <div class="asset-info">
             <p>{{ item.symbol }}<span>{{"(" + item.registerChain + ")"}}</span></p>
@@ -627,7 +628,8 @@ export default {
       );
       let nvtFee = divisionDecimals(res, 8); // 异构跨链手续费-nvt
       // console.log(nvtFee, 66)
-      nvtFee = this.speedUpFee ? Number(nvtFee) * 1.5 : nvtFee * 1.2;
+      // nvtFee = this.speedUpFee ? Number(nvtFee) * 1.5 : nvtFee * 1.2;
+      nvtFee = this.speedUpFee ? Times(nvtFee, 1.5).toString() : Times(nvtFee, 1.5).toString();
       this.withdrawalNVTFee = nvtFee;
       // nerve链上nvt余额
       const nvtBalance = this.getNvtBalanceInfo()
@@ -658,7 +660,8 @@ export default {
         assetsId: swapAssetInfo.assetId,
       };
       const { chainId, assetId } = await this.getAssetNerveInfo(nerveInfoParams);
-      const swapAmount = timesDecimals(Times(amount, swapScale), 8);
+      // console.log(amount, 123465, swapScale, Times(amount, swapScale))
+      const swapAmount = timesDecimals(Times(amount, swapScale), 8).split(".")[0];
       const nerveAddress = getCurrentAccount(this.address).address.NERVE;
       const params = {
         address: nerveAddress,
