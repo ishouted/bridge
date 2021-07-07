@@ -524,7 +524,8 @@ export default {
       );
       let nvtFee = divisionDecimals(res, 8); // 异构跨链手续费-nvt
       // console.log(nvtFee, 66, nvtFee * 1.2)
-      return Times(nvtFee * 1.2).toString()
+      console.log(Times(nvtFee, 1.2).toString(), 456)
+      return Times(nvtFee, 1.2).toString()
     },
 
     // 组装其他链转入主资产到nerve交易
@@ -622,7 +623,9 @@ export default {
       const { fromChain } = this.txInfo
       const config = JSON.parse(sessionStorage.getItem("config"));
       const { symbol: fromSymbol } = config[fromChain]
+      
       const swapAmount = timesDecimals(Times(amount, swapScale), 8).split(".")[0];
+      console.log(amount, swapScale, swapAmount, 789)
       const params = {
         address: nerveAddress,
         toAmount: swapAmount,
