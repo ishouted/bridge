@@ -154,7 +154,7 @@ int BG_CROSS_TX_FAIL = 9; */
 import BackBar from '@/components/BackBar'
 import { superLong, divisionAndFix, networkOrigin, copys, timesDecimals, divisionDecimals, Times } from '@/api/util'
 import moment from "moment"
-import { ETransfer, NTransfer, getSymbolUSD, swapScale, swapSymbolConfig, crossFee } from "@/api/api";
+import { ETransfer, NTransfer, getSymbolUSD, swapScale, swapSymbolConfig, crossFee, reportError } from "@/api/api";
 import { MAIN_INFO, NULS_INFO, ETHNET } from "@/config";
 import BufferReader from "nerve-sdk-js/lib/utils/bufferreader";
 import txs from "nerve-sdk-js/lib/model/txs";
@@ -409,6 +409,7 @@ export default {
         this.runTransfer();
       } catch (e) {
         console.log(e, "eee")
+        reportError(this.txInfo.txHash, e)
         this.$message({ message: this.$t("tips.tips6"), type: "warning", duration: 2000 });
         this.showRetryDialog = false;
       }
@@ -758,6 +759,7 @@ export default {
         this.updateTx(updateTx)
       } catch (e) {
         console.error("error: " + e);
+        reportError(this.txInfo.txHash, e)
         if (this.destroyed) return;
         this.$message({ message: this.$t("tips.tips6"), type: "warning", duration: 2000 });
       }

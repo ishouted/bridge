@@ -719,3 +719,13 @@ export const swapSymbolConfig = {
   OKT: "OKT(OKT)",
   NULS: "NULS"
 }
+
+export async function reportError(txHash, errMsg) {
+  const res = await request({
+    url: "/tx/bridge/log",
+    data: {
+      txHash,
+      log: JSON.stringify(errMsg)
+    }
+  });
+}

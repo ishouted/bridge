@@ -32,7 +32,7 @@
 
 <script>
 import BackBar from "@/components/BackBar";
-import { NTransfer, ETransfer } from "@/api/api";
+import { NTransfer, ETransfer, reportError } from "@/api/api";
 import { MAIN_INFO, NULS_INFO } from "@/config"
 import BufferReader from "nerve-sdk-js/lib/utils/bufferreader";
 import txs from "nerve-sdk-js/lib/model/txs";
@@ -342,13 +342,13 @@ export default {
         crossTxHex: "", // nerve转出到其他网络hex
         convertSymbol: this.stepList.length > 2
       }
-      try {
-        let updateTx = {
+      let updateTx = {
           txHash: "",
           feeTxHash: "",
           convertTxHex: "",
           crossTxHex: ""
         }
+      try {
         for (let i = 0; i < this.stepList.length; i++) {
           if (this.destroyed) break; // 防止页面返回后继续执行异步循环转账，签名
           const step = this.stepList[i];
@@ -394,6 +394,9 @@ export default {
         this.updateTx(updateTx)
       } catch (e) {
         console.error("error: " + e);
+        if (updateTx.txHash) {
+          reportError(updateTx.txHash, e)
+        }
         if (this.destroyed) return;
         this.$message({ message: this.$t("tips.tips6"), type: "warning", duration: 2000 });
         setTimeout(() => {
