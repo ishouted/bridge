@@ -599,7 +599,7 @@ export default {
         (v) => v.chainName === this.fromNetwork
       )[0];
       const isToken = assetHeterogeneousInfo.token;
-      const gasLimit = isToken ? "100000" : "33594";
+      const gasLimit = isToken ? "150000" : "33594";
       const transfer = new ETransfer();
       let fee
       if (this.speedUpFee) {
@@ -629,7 +629,7 @@ export default {
       let nvtFee = divisionDecimals(res, 8); // 异构跨链手续费-nvt
       // console.log(nvtFee, 66)
       // nvtFee = this.speedUpFee ? Number(nvtFee) * 1.5 : nvtFee * 1.2;
-      nvtFee = this.speedUpFee ? Times(nvtFee, 1.5).toString() : Times(nvtFee, 1.5).toString();
+      nvtFee = this.speedUpFee ? Times(nvtFee, 1.5).toString() : Times(nvtFee, 1.2).toString();
       this.withdrawalNVTFee = nvtFee;
       // nerve链上nvt余额
       const nvtBalance = this.getNvtBalanceInfo()
@@ -1018,8 +1018,9 @@ export default {
       if (isMainAsset) {
         if (Minus(Plus(this.amount, fee), this.available) > 0) flag = false;
       } else {
-        if (fromChainBalance - fee < 0) flag = false;
+        if (Minus(fromChainBalance, fee) < 0) flag = false;
       }
+      // console.log(fromChainInfo, fee, isMainAsset, fromChainBalance, 2222,Minus(fromChainBalance, fee) < 0)
       return flag
     },
     superLong(str, len = 8) {
