@@ -240,7 +240,7 @@ import {
   supportChainList
 } from "@/api/util";
 import FeeWrap from "@/components/FeeWrap"
-import { networkOrigin } from '../../api/util';
+import { networkOrigin, getCurrentAccount } from '../../api/util';
 import defaultIcon from "@/assets/img/commonIcon.png";
 import { ETransfer, NTransfer } from "@/api/api";
 
@@ -260,16 +260,16 @@ valideNetwork.map(v=> {
   }
 })
 
-function getAccountList() {
-  return JSON.parse(localStorage.getItem("accountList")) || [];
-}
-function getCurrentAccount(address) {
-  const accountList = getAccountList();
-  const currentAccount = accountList.filter((item) => {
-    return item.address.Ethereum === address;
-  });
-  return currentAccount[0] || null;
-}
+// function getAccountList() {
+//   return JSON.parse(localStorage.getItem("accountList")) || [];
+// }
+// function getCurrentAccount(address) {
+//   const accountList = getAccountList();
+//   const currentAccount = accountList.filter((item) => {
+//     return item.address.Ethereum === address;
+//   });
+//   return currentAccount[0] || null;
+// }
 
 
 export default {
@@ -596,7 +596,7 @@ export default {
       if (network.hasOwnProperty(ETHNET)) {
         if (
           network[ETHNET] !== this.fromChainId &&
-          this.walletType === "metamask"
+          this.walletType
         ) {
           this.fromNetworkMsg = this.$t("home.home8");
         } else {

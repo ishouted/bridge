@@ -152,7 +152,7 @@ int BG_CROSS_TX_FAIL = 9; */
 (7)WAIT_KYC: 等待进行KYC或联系客服提供链接
 */
 import BackBar from '@/components/BackBar'
-import { superLong, divisionAndFix, networkOrigin, copys, timesDecimals, divisionDecimals, Times } from '@/api/util'
+import { superLong, divisionAndFix, networkOrigin, copys, timesDecimals, divisionDecimals, Times, getCurrentAccount } from '@/api/util'
 import moment from "moment"
 import { ETransfer, NTransfer, getSymbolUSD, swapScale, swapSymbolConfig, crossFee, reportError } from "@/api/api";
 import { MAIN_INFO, NULS_INFO, ETHNET } from "@/config";
@@ -160,13 +160,13 @@ import BufferReader from "nerve-sdk-js/lib/utils/bufferreader";
 import txs from "nerve-sdk-js/lib/model/txs";
 
 
-function getCurrentAccount(address) {
-  const accountList = JSON.parse(localStorage.getItem("accountList")) || [];
-  const currentAccount = accountList.find((item) => {
-    return Object.keys(item.address).find(v => item.address[v] === address)
-  });
-  return currentAccount;
-}
+// function getCurrentAccount(address) {
+//   const accountList = JSON.parse(localStorage.getItem("accountList")) || [];
+//   const currentAccount = accountList.find((item) => {
+//     return Object.keys(item.address).find(v => item.address[v] === address)
+//   });
+//   return currentAccount;
+// }
 
 function sleep(time) {
   return new Promise((resolve) => setTimeout(resolve, time));

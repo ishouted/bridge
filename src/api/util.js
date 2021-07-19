@@ -591,3 +591,11 @@ export function genID() {
     )
   ).toString(36);
 }
+
+export function getCurrentAccount(address) {
+  const accountList = JSON.parse(localStorage.getItem("accountList")) || [];
+  const currentAccount = accountList.find((item) => {
+    return Object.keys(item.address).find(v => item.address[v].toLowerCase() === address.toLowerCase())
+  });
+  return currentAccount;
+}

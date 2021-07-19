@@ -167,7 +167,8 @@ import {
   getLogoSrc,
   Times,
   supportChainList,
-  debounce
+  debounce,
+  getCurrentAccount
 } from "@/api/util";
 import { ETransfer, getSymbolUSD, swapScale, swapSymbolConfig, crossFee } from "@/api/api";
 import { getContractCallData } from "@/api/nulsContractValidate";
@@ -175,16 +176,16 @@ import defaultIcon from "@/assets/img/commonIcon.png";
 import FeeWrap from "@/components/FeeWrap"
 
 
-function getAccountList() {
-  return JSON.parse(localStorage.getItem("accountList")) || [];
-}
-function getCurrentAccount(address) {
-  const accountList = getAccountList();
-  const currentAccount = accountList.filter((item) => {
-    return item.address.Ethereum === address;
-  });
-  return currentAccount[0] || null;
-}
+// function getAccountList() {
+//   return JSON.parse(localStorage.getItem("accountList")) || [];
+// }
+// function getCurrentAccount(address) {
+//   const accountList = getAccountList();
+//   const currentAccount = accountList.filter((item) => {
+//     return item.address.Ethereum === address;
+//   });
+//   return currentAccount[0] || null;
+// }
 
 let chainToSymbol = {}
 supportChainList.map(v => {
@@ -341,7 +342,7 @@ export default {
       if (network.hasOwnProperty(ETHNET)) {
         if (
           network[ETHNET] !== this.fromChainId &&
-          this.walletType === "metamask"
+          this.walletType
         ) {
           this.fromNetworkMsg = this.$t("home.home8");
         } else {
@@ -388,6 +389,7 @@ export default {
     // 下拉选择资产
     async selectAsset(asset) {
       this.amount = "";
+      this.available = 0;
       this.chooseAsset = asset;
       this.assetListModal = false;
       this.clearGetAllowanceTimer();

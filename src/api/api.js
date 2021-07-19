@@ -23,6 +23,8 @@ export class NTransfer {
     this.chain = props.chain; //链网络
     this.type = props.type; //交易类型
     this.sdk = nSdk[this.chain] || nerve; // nerve nuls sdk
+    const provider = sessionStorage.getItem("walletType");
+    this.walletType = provider; 
   }
 
   async getTxHex(data) {
@@ -32,7 +34,10 @@ export class NTransfer {
     // 调用metamask签名hash，然后拼接公钥完成交易签名
     const hash = "0x" + tAssemble.getHash().toString("hex");
     
-    let flat = await window.ethereum.request({
+    if (!this.walletType) {
+      return null
+    }
+    let flat = await window[this.walletType].request({
       method: "eth_sign",
       params: [signAddress, hash]
     })
@@ -64,7 +69,7 @@ export class NTransfer {
     const reader = new BufferReader(tAssemble.signatures, 0);
     txSignData.parse(reader); */
 
-    let flat = await window.ethereum.request({
+    let flat = await window[this.walletType].request({
       method: "eth_sign",
       params: [signAddress, hash]
     })
@@ -414,13 +419,15 @@ const erc20TransferAbiFragment = [{
 export class ETransfer {
 
   constructor(props = {}) {
+    const provider = sessionStorage.getItem("walletType");
+    this.walletType = provider;
     this.getProvider(props.chain)
-    // this.provider = new ethers.providers.Web3Provider(window.ethereum);
   }
 
   getProvider(chain) {
+    if (!this.walletType) return null;
     if (!chain) {
-      this.provider = new ethers.providers.Web3Provider(window.ethereum);
+      this.provider = new ethers.providers.Web3Provider(window[this.walletType]);
     } else {
       if (chain === "Ethereum") {
         this.provider = ethers.getDefaultProvider(ETHNET);

@@ -6,14 +6,10 @@
         <span class="title">
           Connect to a wallet
         </span>
-        <p @click="connectMetamask">
-          MetaMask
-          <img class="fr" src="../../assets/img/metamask.svg" alt="" />
+        <p v-for="item in providerList" :key="item.name" @click="connectProvider(item.provider)">
+          {{item.name}}
+          <img :src="item.src" alt="">
         </p>
-        <!-- <p @click="connectWalletConnect">
-          WalletConnect
-          <img class="fr" src="../../assets/img/walletConnect.svg" alt="" />
-        </p> -->
       </div>
       <div class="show-sign-button" v-else-if="showSign">
         <el-button type="primary" @click="derivedAddress">{{
@@ -67,26 +63,37 @@ import SwftSwap from "./SwftSwap";
 import NerveSwap from "./NerveSwap";
 import { MAIN_INFO, NULS_INFO, ETHNET } from "@/config";
 import nerve from "nerve-sdk-js";
-import WalletConnectProvider from "@walletconnect/web3-provider";
-import { supportChainList } from "../../api/util"
+import { supportChainList, getCurrentAccount } from "../../api/util";
+import MetaMask from "../../assets/img/metamask.svg";
+import Nabox from "../../assets/img/nabox.svg";
+import OKEx from "../../assets/img/okexchain.png";
+
 
 const ethers = require("ethers");
 
-function getAccountList() {
-  return JSON.parse(localStorage.getItem("accountList")) || [];
-}
-function getCurrentAccount(address) {
-  const accountList = getAccountList();
-  const currentAccount = accountList.filter((item) => {
-    return item.address.Ethereum === address;
-  });
-  return currentAccount[0] || null;
-}
+// function getAccountList() {
+//   return JSON.parse(localStorage.getItem("accountList")) || [];
+// }
+// function getCurrentAccount(address) {
+//   const accountList = getAccountList();
+//   const currentAccount = accountList.filter((item) => {
+//     return item.address.Ethereum.toLowerCase() === address.toLowerCase();
+//   });
+//   return currentAccount[0] || null;
+// }
 
-const infuraProjectId = "e81110266e064ad6a21990561a18a6eb";
+const isMobile = /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent);
+const MetaMaskProvider = "ethereum"
+const NaboxProvier = isMobile ? MetaMaskProvider : "NaboxWallet"
+const OKExProvier = isMobile ? MetaMaskProvider : "okexchain"
 
 export default {
   data() {
+    this.providerList = [
+      { name: "MetaMask", src: MetaMask, provider: MetaMaskProvider },
+      { name: "Nabox", src: Nabox, provider: NaboxProvier },
+      { name: "OKEx", src: OKEx, provider: OKExProvier },
+    ]
     return {
       loading: true,
       supportListShow: true, //显示可连接钱包列表
@@ -95,7 +102,7 @@ export default {
       swapType: "nerve",
       provider: null,
       fromChainId: "",
-      walletType: sessionStorage.getItem("walletType"), // 连接钱包类型 metamask walletConnect
+      walletType: isMobile ? MetaMaskProvider :sessionStorage.getItem("walletType"), // 连接钱包类型 metamask walletConnect
     };
   },
 
@@ -149,33 +156,30 @@ export default {
   mounted() {},
 
   methods: {
-    initConnect() {
-      if (!this.walletType) {
+    async initConnect() {
+      if (!this.walletType || !window[this.walletType]) {
+        sessionStorage.removeItem("walletType")
         this.loading = false;
         return;
       }
-      if (this.walletType === "metamask") {
-        if (window.ethereum) {
-          this.initMetamask();
-        }
-      } else if (this.walletType === "walletConnect") {
-        // this.initWalletConnect();
-      }
-      this.loading = false;
-
-    },
-    // 初始化metamask wallet provider address
-    async initMetamask() {
-      this.wallet = window.ethereum;
+      this.wallet = window[this.walletType];
       this.address = this.wallet.selectedAddress;
       if (!this.address) {
         await this.requestAccounts();
       }
-      this.fromChainId = this.wallet.chainId;
-      this.provider = new ethers.providers.Web3Provider(window.ethereum);
+      this.fromChainId = this.parseChainId(this.wallet.chainId);
+      this.provider = new ethers.providers.Web3Provider(this.wallet);
       this.supportListShow = false;
       this.listenAccountChange();
       this.listenNetworkChange();
+
+      this.loading = false;
+
+    },
+    parseChainId(chainId) {
+      chainId = chainId + ""
+      // 兼容Binggo
+      return chainId.startsWith("0x") ? chainId : "0x" + Number(chainId).toString(16);
     },
     async requestAccounts() {
       const res = await this.wallet.request({ method: "eth_requestAccounts" });
@@ -183,81 +187,20 @@ export default {
         this.address = res[0]
       }
     },
-    //连接metamask
-    async connectMetamask() {
-      if (!window.ethereum) {
-        this.$message({ message: this.$t("tips.tips3"), type: "warning" });
-      } else {
-        try {
-          this.walletType = "metamask";
-          sessionStorage.setItem("walletType", "metamask");
-          await this.initMetamask();
-        } catch (e) {
-          // console.log(e, 222)
-          this.$message({ message: e.message, type: "warning"});
-        }
+    // 连接provider
+    async connectProvider(provider) {
+      if (!window[provider]) {
+        this.$message({ message: "Not found", type: "warning"});
+        return
       }
-    },
-    // 连接walletConnect
-    async connectWalletConnect() {
-      const provider = new WalletConnectProvider({
-        // infuraId: "27e484dcd9e3efcfd25a83a78777cdf1",
-        rpc: {
-          1: "https://mainnet.infura.io/v3/" + infuraProjectId, //Ethereum 主网
-          3: "https://ropsten.infura.io/v3/" + infuraProjectId, //Ethereum 测试网
-          56: "https://bsc-dataseed1.defibit.io", //BSC 主网
-          97: "https://data-seed-prebsc-2-s1.binance.org:8545", //BSC 测试网
-          // 128: "https://http-mainnet.hecochain.com", //Heco 主网
-          128: "https://http-mainnet-node.huobichain.com", //Heco 主网
-          256: "https://http-testnet.hecochain.com", //Heco 测试网
-        },
-      });
-      const res = await provider.enable();
-      console.log(res);
-      // sessionStorage.setItem("walletType", "walletConnect")
-      // // Create a connector
-      // const connector = new WalletConnect({
-      //   bridge: "https://bridge.walletconnect.org", // Required
-      //   qrcodeModal: QRCodeModal,
-      // });
-      // this.wallet = connector;
-
-      // // Check if connection is already established
-      // if (!connector.connected) {
-      //   // create new session
-      //   connector.createSession();
-      // }
-
-      // // Subscribe to connection events
-      // connector.on("connect", (error, payload) => {
-      //   if (error) {
-      //     throw error;
-      //   }
-
-      //   // Get provided accounts and chainId
-      //   const { accounts, chainId } = payload.params[0];
-      //   console.log(accounts, chainId, 132465)
-      //   this.address = accounts[0];
-      //   this.walletListShow = false;
-      // });
-
-      // connector.on("session_update", (error, payload) => {
-      //   if (error) {
-      //     throw error;
-      //   }
-
-      //   // Get updated accounts and chainId
-      //   const { accounts, chainId } = payload.params[0];
-      // });
-
-      // connector.on("disconnect", (error, payload) => {
-      //   if (error) {
-      //     throw error;
-      //   }
-      //   console.log(payload, "disconnect")
-
-      //   // Delete connector
-      // });
+      try {
+        this.walletType = provider;
+        sessionStorage.setItem("walletType", provider);
+        await this.initConnect();
+      } catch (e) {
+        // console.log(e, 222)
+        this.$message({ message: e.message, type: "warning"});
+      }
     },
     //监听账户改变
     listenAccountChange() {
@@ -276,7 +219,7 @@ export default {
     listenNetworkChange() {
       this.wallet.on("chainChanged", (chainId) => {
         if (chainId && this.walletType) {
-          this.fromChainId = chainId;
+          this.fromChainId = this.parseChainId(chainId);
         }
       });
     },
@@ -335,7 +278,7 @@ export default {
             pub,
             NULSPrefix
           );
-          const accountList = getAccountList()
+          const accountList = JSON.parse(localStorage.getItem("accountList")) || [];
           const existIndex = accountList.findIndex(v => v.pub === account.pub);
           // 原来存在就替换，找不到就push
           if (existIndex > -1) {
@@ -418,10 +361,13 @@ export default {
       display: inline-block;
     }
     p {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       height: 50px;
-      line-height: 50px;
-      padding: 0 15px;
-      margin-bottom: 10px;
+      // line-height: 50px;
+      padding: 0 20px;
+      margin-bottom: 15px;
       border-radius: 16px;
       background-color: rgb(239, 244, 245);
       transition: background-color 0.2s ease 0s;
@@ -433,7 +379,9 @@ export default {
         opacity: 0.65;
       }
       img {
-        margin-top: 7px;
+        // margin-top: 7px;
+        width: 35px;
+        height: 33px;
       }
     }
   }
