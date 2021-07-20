@@ -157,6 +157,7 @@ export default {
 
   methods: {
     async initConnect() {
+      console.log(this.walletType, 123, window[this.walletType])
       if (!this.walletType || !window[this.walletType]) {
         sessionStorage.removeItem("walletType")
         this.loading = false;
@@ -194,12 +195,22 @@ export default {
         return
       }
       try {
-        this.walletType = provider;
-        sessionStorage.setItem("walletType", provider);
+        this.setConfig(provider)
         await this.initConnect();
       } catch (e) {
         // console.log(e, 222)
+        this.setConfig(null)
         this.$message({ message: e.message, type: "warning"});
+      }
+    },
+    setConfig(provider) {
+      if (provider) {
+        this.walletType = provider;
+        sessionStorage.setItem("walletType", provider);
+      } else {
+        this.walletType = "";
+        sessionStorage.setItem("walletType", "");
+        this.supportListShow = true
       }
     },
     //监听账户改变
@@ -210,7 +221,7 @@ export default {
           this.address = accounts[0];
           // this.getBalance();
         } else {
-          this.address = "";
+          this.setConfig(null)
         }
       });
     },
@@ -304,6 +315,7 @@ export default {
         }
       } catch (e) {
         // console.log(e, 556)
+        this.setConfig(null)
         this.address = "";
         this.$message({ message: this.$t("tips.tips5"), type: "warning" });
       }

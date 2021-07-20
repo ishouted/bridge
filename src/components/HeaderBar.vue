@@ -1,7 +1,7 @@
 <template>
   <div class="header">
     <div class="left">
-      <img src="../assets/img/logo.svg" alt="">
+      <img src="../assets/img/nervelogo.svg" alt="">
       <!-- NerveBridge -->
     </div>
     <div class="right" v-if="address">
@@ -220,9 +220,12 @@
     border-bottom: 1px solid #EBF0F3;
     background-color: #fff;
     .left img {
-      width: 34px;
-      height: 34px;
+      width: 120px;
       margin-left: 5px;
+      @media screen and (max-width: 400px){
+        width: 75px;
+        margin-left: 0;
+      }
     }
     // img {
     //   width: 34px;
@@ -240,7 +243,7 @@
         // width: 150px;
         height: 32px;
         line-height: 32px;
-        padding: 0 15px;
+        padding: 0 10px;
         background-color: #EBEEF8;
         color: #5BCAF9;
         font-weight: bold;
@@ -250,6 +253,10 @@
         margin-right: 8px;
         cursor: pointer;
         position: relative;
+        @media screen and (max-width: 400px){
+          margin-right: 0;
+          padding: 0 8px;
+        }
         .network {
           font-size: 15px;
           color: #99A3C4;
