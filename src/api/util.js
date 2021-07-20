@@ -593,6 +593,7 @@ export function genID() {
 }
 
 export function getCurrentAccount(address) {
+  if (!address) return null
   const accountList = JSON.parse(localStorage.getItem("accountList")) || [];
   const currentAccount = accountList.find((item) => {
     return Object.keys(item.address).find(v => item.address[v].toLowerCase() === address.toLowerCase())

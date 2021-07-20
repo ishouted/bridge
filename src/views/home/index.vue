@@ -92,7 +92,7 @@ export default {
     this.providerList = [
       { name: "MetaMask", src: MetaMask, provider: MetaMaskProvider },
       { name: "Nabox", src: Nabox, provider: NaboxProvier },
-      { name: "OKEx", src: OKEx, provider: OKExProvier },
+      { name: "OKEx Wallet", src: OKEx, provider: OKExProvier },
     ]
     return {
       loading: true,
@@ -210,6 +210,7 @@ export default {
       } else {
         this.walletType = "";
         sessionStorage.setItem("walletType", "");
+        this.address = "";
         this.supportListShow = true
       }
     },
@@ -341,10 +342,7 @@ export default {
     },
 
     quit() {
-      this.walletType = "";
-      sessionStorage.removeItem("walletType");
-      this.address = "";
-      this.supportListShow = true;
+      this.setConfig(null);
     },
   },
 };

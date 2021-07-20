@@ -6,7 +6,8 @@ import i18n from './i18n'
 import {post, request} from './api/https'
 import { toThousands, isBeta } from "./api/util";
 // import './api/rem'
-
+// import VConsole from 'vconsole'
+// new VConsole()
 const development = process.env.NODE_ENV === "development"
 
 Vue.config.devtools = development;
@@ -55,7 +56,9 @@ async function getConfig(network) {
     i18n,
     render: h => h(App)
   });
-  window.__VUE_DEVTOOLS_GLOBAL_HOOK__.Vue = app.constructor
+  if (development && window.__VUE_DEVTOOLS_GLOBAL_HOOK__) {
+    window.__VUE_DEVTOOLS_GLOBAL_HOOK__.Vue = app.constructor
+  }
 }
 
 getConfig(network);
