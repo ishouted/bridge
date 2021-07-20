@@ -150,6 +150,9 @@ export default {
   },
 
   created() {
+    if (this.isMobile) {
+      sessionStorage.setItem("walletType", this.walletType);
+    }
     this.initConnect();
   },
 
