@@ -695,7 +695,7 @@ export default {
           duration: 2000
         }) */
         // throw new Error(this.$t("home.home12"))
-        throw this.$t("home.home12")
+        throw res.data
       }
       
     },

@@ -648,7 +648,7 @@ export default {
       if (res.code === 1000 && res.data.data) {
         return res.data.data.quantityPlain
       } else {
-        throw this.$t("home.home12")
+        throw res.data
       }
     },
 
