@@ -440,7 +440,6 @@ export default {
     // 获取资产在nerve链上的信息
     async getAssetNerveInfo(forSwap = false) {
       const { fromChain, assetId, chainId, contractAddress } = this.txInfo;
-      if (fromChain === "NULS" || fromChain === "NERVE") return { chainId, assetId };
       let params
       if (forSwap) {
         // 查询主资产在nerve链上的chainId assetId
@@ -448,6 +447,7 @@ export default {
         const fromChainInfo = config[fromChain];
         params = { chainId: fromChainInfo.chainId, assetId: fromChainInfo.assetId }
       } else {
+        if (fromChain === "NULS" || fromChain === "NERVE") return { chainId, assetId };
         params = contractAddress ? { chainId, contractAddress } : { chainId, assetId }
       }
       const res = await this.$request({
