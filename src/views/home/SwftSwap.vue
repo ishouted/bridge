@@ -485,8 +485,7 @@ export default {
     // 获取swft支持的闪兑列表
     async getCoins() {
       const res = await this.$request({
-        url: "/swap/coins",
-        method: "get"
+        url: "/coins",
       });
       if (res.msg === "success") {
         const coins = res.data.filter(v => valideNetwork.indexOf(v.mainNetwork) > -1);
