@@ -24,7 +24,7 @@
             <!-- <span> -->
             <img
               class="logo-img"
-              :src="getLogoSrc(chooseFromAsset.symbol)"
+              :src="getLogoSrc(chooseFromAsset.icon)"
               @error="replaceImg"
               alt=""
             />
@@ -71,7 +71,7 @@
             <!-- <span> -->
             <img
               class="logo-img"
-              :src="getLogoSrc(chooseToAsset.symbol)"
+              :src="getLogoSrc(chooseToAsset.icon)"
               @error="replaceImg"
               alt=""
             />
@@ -122,7 +122,7 @@
           :class="checkActive(item)"
         >
           <div class="logo-wrap">
-            <img :src="getLogoSrc(item.symbol)" @error="replaceImg" alt="" />
+            <img :src="getLogoSrc(item.icon)" @error="replaceImg" alt="" />
           </div>
           <div class="asset-info">
             <p>{{ item.symbol }}<span>{{"(" + item.chain + ")"}}</span></p>
@@ -156,7 +156,7 @@
             <div class="right">
               <img
                 class="logo-img"
-                :src="getLogoSrc(chooseFromAsset.symbol)"
+                :src="getLogoSrc(chooseFromAsset.icon)"
                 @error="replaceImg"
                 alt=""
               />
@@ -176,7 +176,7 @@
             <div class="right">
               <img
                 class="logo-img"
-                :src="getLogoSrc(chooseToAsset.symbol)"
+                :src="getLogoSrc(chooseToAsset.icon)"
                 @error="replaceImg"
                 alt=""
               />
@@ -418,8 +418,8 @@ export default {
     superLong(str, len = 8) {
       return superLong(str, len);
     },
-    getLogoSrc(symbol) {
-      return getLogoSrc(symbol);
+    getLogoSrc(icon) {
+      return getLogoSrc(icon);
     },
     replaceImg(e) {
       e.target.src = defaultIcon;
@@ -485,7 +485,8 @@ export default {
     // 获取swft支持的闪兑列表
     async getCoins() {
       const res = await this.$request({
-        url: "/coins"
+        url: "/swap/coins",
+        method: "get"
       });
       if (res.msg === "success") {
         const coins = res.data.filter(v => valideNetwork.indexOf(v.mainNetwork) > -1);
@@ -497,6 +498,7 @@ export default {
           v.assetId = v.contact ? 0 : chain.assetId */
           v.contractAddress = v.contact
         })
+        console.log(coins, 3333)
         this.supportList = coins.sort((a, b) => a.symbol > b.symbol ? 1 : -1);
         this.fromCoinList = this.dialogCoinList = this.supportList.filter(v => v.chain === this.fromNetwork);
       }

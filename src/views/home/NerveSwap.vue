@@ -51,7 +51,7 @@
             <!-- <span> -->
             <img
               class="logo-img"
-              :src="getLogoSrc(chooseAsset.symbol)"
+              :src="getLogoSrc(chooseAsset.icon)"
               @error="replaceImg"
               alt=""
             />
@@ -138,7 +138,7 @@
           :class="{ active: chooseAsset && chooseAsset.id === item.id }"
         >
           <div class="logo-wrap">
-            <img :src="getLogoSrc(item.symbol)" @error="replaceImg" alt="" />
+            <img :src="getLogoSrc(item.icon)" @error="replaceImg" alt="" />
             <!--<img src="https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/N-logo.png" alt="">-->
           </div>
           <div class="asset-info">
@@ -1028,8 +1028,8 @@ export default {
     superLong(str, len = 8) {
       return superLong(str, len);
     },
-    getLogoSrc(symbol) {
-      return getLogoSrc(symbol);
+    getLogoSrc(url) {
+      return getLogoSrc(url);
     },
     
     /**

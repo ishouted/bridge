@@ -553,18 +553,19 @@ export const networkOrigin = {
   OKExChain: isBeta ? "https://www.oklink.com/okexchain-test" : "https://www.oklink.com/okexchain"
 }
 
-export function getLogoSrc(symbol) {
-  return "https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/" + symbol + ".png"
+export function getLogoSrc(icon) {
+  return icon || "https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/NERVE_NULL.png"
+  // return "https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/" + symbol + ".png"
 }
 
 
 export const supportChainList = [
   { label: "NERVE", value: "NERVE", symbol: "NVT", SwftChain: "NERVE", chainId: MAIN_INFO.chainId, assetId: MAIN_INFO.assetId },
   { label: "NULS", value: "NULS", symbol:"NULS", SwftChain: "NULS", chainId: NULS_INFO.chainId, assetId: NULS_INFO.assetId },
-  { label: "Ethereum", value: "Ethereum", symbol:"ETH", ropsten: "0x3", SwftChain: "ETH", homestead: "0x1", chainId: 101, assetId: 1 },
+  { label: "Ethereum", value: "Ethereum", symbol:"ETH", ropsten: "0x3", SwftChain: "Ethereum", homestead: "0x1", chainId: 101, assetId: 1 },
   { label: "BSC", value: "BSC", symbol:"BNB", ropsten: "0x61", homestead: "0x38", SwftChain: "BSC", chainId: 102, assetId: 1 },
-  { label: "Heco", value: "Heco", symbol:"HT", ropsten: "0x100", homestead: "0x80", SwftChain: "HECO", chainId: 103, assetId: 1 },
-  { label: "OKExChain", value: "OKExChain", symbol:"OKT", ropsten: "0x41", homestead: "0x42", SwftChain: "OKT", chainId: 104, assetId: 1 }
+  { label: "Heco", value: "Heco", symbol:"HT", ropsten: "0x100", homestead: "0x80", SwftChain: "Heco", chainId: 103, assetId: 1 },
+  { label: "OKExChain", value: "OKExChain", symbol:"OKT", ropsten: "0x41", homestead: "0x42", SwftChain: "OKExChain", chainId: 104, assetId: 1 }
 ];
 
 export function debounce(fn, delay) {
