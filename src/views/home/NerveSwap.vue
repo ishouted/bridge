@@ -59,13 +59,9 @@
               <span>{{ chooseAsset.symbol }}</span>
               <span class="origin-chain">{{ chooseAsset.registerChain }}</span>
             </div>
-            <!-- {{ chooseAsset.symbol }}<span class="origin-chain">{{ "(" + chooseAsset.registerChain + ")" }}</span> -->
-            <!-- {{ chooseAsset.symbol + "(" + chooseAsset.registerChain + ")" }} -->
-            <!-- </span> -->
           </template>
           <i class="el-icon-caret-bottom fw"></i>
         </div>
-        <!-- <el-button slot="append">MAX</el-button> -->
       </el-input>
     </div>
     <div class="msg-wrap">
@@ -88,31 +84,6 @@
         </div>
       </div>
     </fee-wrap>
-    <!-- <div class="fee">
-      <span class="label">{{ $t("public.fee") }}</span>
-      
-        <el-tooltip
-          effect="dark"
-          :content="$t('home.home2')"
-          value="1"
-          :append-to-body="false"
-          ref="mypop"
-        >
-          <span class="el-icon-info"></span>
-        </el-tooltip>
-        <span ref="here">
-        </span>
-      
-      <div class="fee-inner">
-        <span v-if="!fee">--</span>
-        <div v-else>
-          {{ fee }}
-          <el-checkbox v-model="speedUpFee" v-if="showSpeedUp">
-            {{ $t("home.home11") }}
-          </el-checkbox>
-        </div>
-      </div>
-    </div> -->
     <div class="btn-wrap tc">
       <el-button type="primary" v-if="crossInAuth" :disabled="!!fromNetworkMsg" @click="approveERC20">{{
         $t("home.home10")
@@ -121,6 +92,7 @@
         $t("public.next")
       }}</el-button>
     </div>
+    <div class="pending-tx-tip" v-if="hasPendingTx">{{ $t("home.home25") }}</div>
     <el-dialog
       :title="$t('home.home6')"
       :visible.sync="assetListModal"
@@ -225,7 +197,8 @@ export default {
       crossInAuth: false, //异构链转入nerve是否需要授权
       speedUpFee: false, //是否加速
       searchVal: "",
-      filteredList: []
+      filteredList: [],
+      hasPendingTx: false
     }
   },
 
@@ -247,6 +220,7 @@ export default {
         if (!val) return;
         this.reset();
         this.toNetwork = "";
+        this.checkHasPendingTx();
       },
     },
     fromChainId: {
@@ -295,6 +269,12 @@ export default {
       } else {
         this.filteredList = this.assetsList
       }
+    },
+    pubKey(val) {
+      if (val) {
+        // console.log(9995555)
+        this.checkHasPendingTx()
+      }
     }
   },
 
@@ -310,7 +290,8 @@ export default {
         !Number(this.amount) ||
         !this.fee ||
         this.amountMsg ||
-        this.fromNetworkMsg
+        this.fromNetworkMsg ||
+        this.hasPendingTx
       )
         return false;
       return true;
@@ -324,15 +305,40 @@ export default {
         return false
       }
       return true
+    },
+    pubKey() {
+      if (!this.address) return null
+      return getCurrentAccount(this.address).pub;
     }
   },
 
   created() {
   },
 
-  mounted() {},
+  mounted() {
+    // this.checkHasPendingTx();
+    const timer = setInterval(() =>{     
+      this.checkHasPendingTx();
+    }, 5000);
+    this.$once('hook:beforeDestroy', () => {
+      clearInterval(timer);
+    })
+  },
 
   methods: {
+    async checkHasPendingTx() {
+      let hasPendingTx = true;
+      const res = await this.$request({
+        url: "/tx/cross/check/unConfirm",
+        data: {
+          pubKey: this.pubKey
+        },
+      });
+      if (res.code === 1000) {
+        hasPendingTx = !res.data.success
+      }
+      this.hasPendingTx = hasPendingTx;
+    },
 
     checkNetwork(fromNetwork) {
 
@@ -1106,5 +1112,10 @@ export default {
 
 </script>
 <style lang="less">
-
+  .pending-tx-tip {
+    font-size: 14px;
+    text-align: center;
+    margin-top: 20px;
+    color: #f56c6c;
+  }
 </style>

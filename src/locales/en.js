@@ -38,6 +38,7 @@ const en = {
     home22: "Receive",
     home23: "All fees are charged by the third-party platform, NerveBridge charge no fees",
     home24: "Enter the token symbol or address",
+    home25: "Please wait for the current transaction to complete before sending the next one",
   },
   public: {
     amount: "Amount",

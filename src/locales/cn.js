@@ -38,6 +38,7 @@ const cn = {
     home22: "接收",
     home23: "所有手续费由第三方平台收取，NerveBridge未收取任何费用",
     home24: "输入代币名称或合约地址",
+    home25: "请等待当前交易完成再发送下一笔",
   },
   public: {
     amount: "数量",
