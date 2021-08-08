@@ -400,11 +400,17 @@ export default {
           await this.constructTx("NERVE", type, transferInfo, transferInfo.txData || {}, this.$t("transfer.transfer5"), false);
         } else {
           const { chainId, assetId } = await this.getAssetNerveInfo(true);
-          const fee = await this.getSwapCost(swapNVT, nerveAddress, chainId, assetId); // 用于闪兑nvt的主资产数量
+          // 用于闪兑nvt的主资产数量, nvt数量已*2
+          let fee = await this.getSwapCost(swapNVT, nerveAddress, chainId, assetId); 
           if (this.failType === 1) {
+            // 未转入手续费, 转入手续费再闪兑提现
             await this.constructCrossInTx(assetInfo, nerveAddress, fee);
+            await this.constructSwapAndWithdrawalTx(nerveAddress, transferInfo, type, fee, chainId, assetId);
+          } else {
+            // 已转入手续费，进行闪兑+提现， 闪兑NVT数量*0.8， 避免价格波动引起闪兑时主资产余额不足
+            fee = Times(fee, 0.8).toString();
+            await this.constructSwapAndWithdrawalTx(nerveAddress, transferInfo, type, fee, chainId, assetId);
           }
-          await this.constructSwapAndWithdrawalTx(nerveAddress, transferInfo, type, fee, chainId, assetId);
         }
         this.runTransfer();
       } catch (e) {
@@ -526,6 +532,7 @@ export default {
       let nvtFee = divisionDecimals(res, 8); // 异构跨链手续费-nvt
       // console.log(nvtFee, 66, nvtFee * 1.2)
       console.log(Times(nvtFee, 1.2).toString(), 456)
+      // * 1.2 保证提现速度
       return Times(nvtFee, 1.2).toString()
     },
 

@@ -717,7 +717,7 @@ export async function getSymbolUSD(chain) {
   return null;
 }
 
-export const swapScale = 1.1
+export const swapScale = 2; // 闪兑数量/提现数量比例
 
 export const swapSymbolConfig = {
   ETH: "ETH",

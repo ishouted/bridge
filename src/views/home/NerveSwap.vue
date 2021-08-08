@@ -636,8 +636,8 @@ export default {
       );
       let nvtFee = divisionDecimals(res, 8); // 异构跨链手续费-nvt
       // console.log(nvtFee, 66)
-      // nvtFee = this.speedUpFee ? Number(nvtFee) * 1.5 : nvtFee * 1.3; // 第一次1.4 重发1.2
-      nvtFee = this.speedUpFee ? Times(nvtFee, 1.5).toString() : Times(nvtFee, 1.4).toString();
+      // nvtFee = this.speedUpFee ? Number(nvtFee) * 1.4 : nvtFee * 1.2; // 提现手续费 加速*1.4 普通*1.2
+      nvtFee = this.speedUpFee ? Times(nvtFee, 1.4).toString() : Times(nvtFee, 1.2).toString();
       this.withdrawalNVTFee = nvtFee;
       // nerve链上nvt余额
       const nvtBalance = this.getNvtBalanceInfo()
