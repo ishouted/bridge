@@ -82,6 +82,9 @@ export default {
 
   methods: {
     async initTransfer() {
+      // nerve作为中转链时,固定的中转nerve地址
+      const crossAddressMap = JSON.parse(localStorage.getItem("crossAddressMap"))
+      const crossAddress_Nerve = crossAddressMap.crossNerveAddress;
       try {
         const {
           fromChain,
@@ -116,57 +119,46 @@ export default {
             transferInfo = crossInfo;
           }
           const txData = transferInfo.txData || {};
+          if (toChain !== "NERVE") {
+            if (!crossAddress_Nerve) throw "Unknown error"
+            if (type === 16) {
+              txData.args[0] = [crossAddress_Nerve] // 跨链合约资产时
+            } else {
+              transferInfo.to = crossAddress_Nerve // 使用中转地址
+            }
+          }
           // 转入
           await this.constructTx(
             fromChain, type, transferInfo, txData, this.$t("transfer.transfer2"), true
           )
           if (toChain !== "NERVE") {
             if (swapInfo) {
+              if (!crossAddress_Nerve) throw "Unknown error"
               // 转入一笔主资产用于闪兑手续费
+              crossInForSwapInfo.to = crossAddress_Nerve // 使用中转地址
               await this.constructTx(
                 fromChain, 10, crossInForSwapInfo, {}, this.$t("transfer.transfer3"), true
               )
-
-              //组装闪兑交易/闪兑+提现交易
-              // await this.constructSwapAndWithdrawalTx()
             }
-            await this.constructSwapAndWithdrawalTx()
+            //组装闪兑交易/闪兑+提现交易
+            //await this.constructSwapAndWithdrawalTx() // 使用中转地址 不再需要组装闪兑交易/闪兑+提现交易
             
-            /* // 如果用于闪兑资产和提现资产是同一种，则需要通过闪兑hash计算提现资产的nonce值，不走下面这个函数
-            if (!isTransferMainAsset && swapInfo || !swapInfo) {
-              // 提现, 如果提现资产为闪兑手续费资产
-              await this.constructTx(
-                "NERVE", 43, crossOutInfo, crossOutInfo.txData, this.$t("transfer.transfer5"), false
-              )
-            } */
           }
         } else {
-          // 异构链转入
-          await this.constructCrossInTx(crossInInfo, this.$t("transfer.transfer2"));
-
           if (toChain !== "NERVE") {
+            if (!crossAddress_Nerve) throw "Unknown error"
+            crossInInfo.nerveAddress = crossAddress_Nerve // 使用中转地址
+            // 异构链转入
+            await this.constructCrossInTx(crossInInfo, this.$t("transfer.transfer2"));
             if (swapInfo) {
               // 转入一笔主资产用于闪兑手续费
+              crossInForSwapInfo.nerveAddress = crossAddress_Nerve // 使用中转地址
               await this.constructCrossInTx(crossInForSwapInfo, this.$t("transfer.transfer3"));
-
-              //组装闪兑交易/闪兑+提现交易
-              // await this.constructSwapAndWithdrawalTx()
             }
-            await this.constructSwapAndWithdrawalTx()
-            /* if (!isTransferMainAsset && swapInfo || !swapInfo) {
-              let type, transferInfo;
-              if (toChain === "NULS") {
-                type = 10;
-                transferInfo = crossInfo
-              } else {
-                type = 43;
-                transferInfo = crossOutInfo
-              }
-              const txData = transferInfo.txData || {};
-              await this.constructTx(
-                "NERVE", type, transferInfo, txData, this.$t("transfer.transfer5"), false
-              )
-            } */
+            //await this.constructSwapAndWithdrawalTx() // 使用中转地址 不再需要组装闪兑交易/闪兑+提现交易
+          } else {
+            // 异构链转入
+            await this.constructCrossInTx(crossInInfo, this.$t("transfer.transfer2"));
           }
         }
         this.runTransfer();
@@ -242,44 +234,15 @@ export default {
           )
         }
       } else {
-        // await this.constructSwapTx(swapInfo, txHexForSign);
         await this.constructTx(
           "NERVE", type, transferInfo, txData, this.$t("transfer.transfer5"), false
         )
       }
-
-      // const txHexForSign = await this.getSwapHex(swapInfo);
-      /* if (isTransferMainAsset) {
-        // 如果用于闪兑资产和提现资产是同一种，则需要通过闪兑hash计算提现资产的nonce值，否则nonce为同一个报孤儿交易
-        await this.constructSwapTx(swapInfo, txHexForSign);
-        const bufferReader = new BufferReader(Buffer.from(txHexForSign, "hex"), 0);
-        // 反序列回交易对象
-        const tAssemble = new txs.Transaction();
-        tAssemble.parse(bufferReader);
-        const hash = tAssemble.getHash().toString("hex");
-        const nonce = hash.slice(-16);
-        let type, transferInfo;
-        if (toChain === "NULS") {
-          type = 10;
-          transferInfo = crossInfo
-        } else {
-          type = 43;
-          transferInfo = crossOutInfo
-        }
-        const txData = transferInfo.txData || {};
-        transferInfo.nonce = nonce
-        await this.constructTx(
-          "NERVE", type, transferInfo, txData, this.$t("transfer.transfer5"), false
-        )
-      } else {
-        await this.constructSwapTx(swapInfo, txHexForSign);
-      } */
     },
 
     async constructSwapTx(swapInfo, txHexForSign) {
       const swapLabel = this.$t("transfer.transfer4");
       const fn = async () => {
-        // const txHexForSign = await this.getSwapHex(swapInfo);
         const transfer = new NTransfer({ chain: "NERVE" }); 
         const { pub, signAddress } = this.sessionInfo;
         return await transfer.appendSignature({
@@ -340,7 +303,7 @@ export default {
         feeTxHash: "", // 转入的手续费hash
         convertTxHex: "", // 闪兑hex
         crossTxHex: "", // nerve转出到其他网络hex
-        convertSymbol: this.stepList.length > 2
+        convertSymbol: this.stepList.length > 1 //使用中转地址，交易超过一次则需要闪兑
       }
       let updateTx = {
           txHash: "",

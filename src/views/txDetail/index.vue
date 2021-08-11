@@ -381,8 +381,11 @@ export default {
     async retry() {
       this.showRetryDialog = true;
       this.retryLoading = true;
+      // nerve作为中转链时,固定的中转nerve地址
+      const crossAddressMap = JSON.parse(localStorage.getItem("crossAddressMap"))
+      const crossAddress_Nerve = crossAddressMap.crossNerveAddress;
       try {
-        const { amount, fromAddress } = this.txInfo;
+        const { amount, fromAddress, fromChain } = this.txInfo;
         const currentAccount = getCurrentAccount(fromAddress);
         this.signInfo = {
           pub: currentAccount.pub,
@@ -404,12 +407,15 @@ export default {
           let fee = await this.getSwapCost(swapNVT, nerveAddress, chainId, assetId); 
           if (this.failType === 1) {
             // 未转入手续费, 转入手续费再闪兑提现
-            await this.constructCrossInTx(assetInfo, nerveAddress, fee);
-            await this.constructSwapAndWithdrawalTx(nerveAddress, transferInfo, type, fee, chainId, assetId);
+            // const address = fromChain === "NULS" ? nerveAddress :crossAddress_Nerve
+            await this.constructCrossInTx(assetInfo, crossAddress_Nerve, fee);
+            //  使用中转nerve后，不需要再组装闪兑提现交易
+            // await this.constructSwapAndWithdrawalTx(nerveAddress, transferInfo, type, fee, chainId, assetId);
           } else {
             // 已转入手续费，进行闪兑+提现， 闪兑NVT数量*0.8， 避免价格波动引起闪兑时主资产余额不足
-            fee = Times(fee, 0.8).toString();
-            await this.constructSwapAndWithdrawalTx(nerveAddress, transferInfo, type, fee, chainId, assetId);
+            throw "Unknown error" //  使用中转nerve后，不会出现此情况
+            // fee = Times(fee, 0.8).toString();
+            // await this.constructSwapAndWithdrawalTx(nerveAddress, transferInfo, type, fee, chainId, assetId);
           }
         }
         this.runTransfer();

@@ -64,6 +64,13 @@ async function getConfig(network) {
 getConfig(network);
 
 
+// 获取crossAddressMap
+request({url: "/api/common/config", method: "get"}).then(res => {
+  if (res.code === 1000 && res.data) {
+    localStorage.setItem("crossAddressMap", JSON.stringify(res.data))
+  }
+}).catch(e => console.log("获取crossAddressMap失败" + e))
+
 // new Vue({
 //   el: "#app",
 //   router,

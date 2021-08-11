@@ -220,7 +220,7 @@ export default {
         if (!val) return;
         this.reset();
         this.toNetwork = "";
-        this.checkHasPendingTx();
+        // this.checkHasPendingTx();
       },
     },
     fromChainId: {
@@ -273,7 +273,7 @@ export default {
     pubKey(val) {
       if (val) {
         // console.log(9995555)
-        this.checkHasPendingTx()
+        // this.checkHasPendingTx()
       }
     }
   },
@@ -316,13 +316,12 @@ export default {
   },
 
   mounted() {
-    // this.checkHasPendingTx();
-    const timer = setInterval(() =>{     
+    /* const timer = setInterval(() =>{     
       this.checkHasPendingTx();
     }, 5000);
     this.$once('hook:beforeDestroy', () => {
       clearInterval(timer);
-    })
+    }) */
   },
 
   methods: {
