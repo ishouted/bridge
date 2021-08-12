@@ -348,7 +348,7 @@ export default {
       if (feeTxHash) {
         hashList = hashList.concat([
           { chain: fromChain, label: fromChain + this.$t("txDetail.txDetail2"), hash: feeTxHash }, // 转入闪兑手续费
-          { chain: "NERVE", label: "NERVE" + this.$t("txDetail.txDetail3"), hash: convertTxHash } // nerve闪兑
+          // { chain: "NERVE", label: "NERVE" + this.$t("txDetail.txDetail3"), hash: convertTxHash } // nerve闪兑
         ])
       }
       if (nerveTxHash) {

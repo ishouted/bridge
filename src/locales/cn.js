@@ -68,7 +68,7 @@ const cn = {
   },
   txDetail: {
     txDetail1: "交易详情",
-    txDetail2: "(转入闪兑手续费)",
+    txDetail2: "(转入手续费)",
     txDetail3: "(闪兑提现手续费)",
     txDetail4: "重新发送",
   },

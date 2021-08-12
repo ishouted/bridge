@@ -68,7 +68,7 @@ const en = {
   },
   txDetail: {
     txDetail1: "Detail",
-    txDetail2: "(Transfer swap fee)",
+    txDetail2: "(Transfer fee)",
     txDetail3: "(Swap withdrawal fee)",
     txDetail4: "To resend",
   },
