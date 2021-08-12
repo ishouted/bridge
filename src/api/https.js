@@ -32,7 +32,10 @@ export function post(url, methodName, data = []) {
 
 export async function request(params) {
   const { url, method = "post", data } = params;
-  const baseUrl = config.BRIDGE_API_URL
+  let baseUrl = config.BRIDGE_API_URL
+  if (url === "/tx/cross/bridge/transfer") {
+    baseUrl = "/nabox-api" //周维喊改的
+  }
   const language = localStorage.getItem("lang") === "cn" ? "CHS" : "EN";
   const newData = method === "post" ? {data: {language, ...data}} : {params: {language, ...data}};
   return new Promise((resolve, reject) => {
