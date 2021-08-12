@@ -635,8 +635,8 @@ export default {
       );
       let nvtFee = divisionDecimals(res, 8); // 异构跨链手续费-nvt
       // console.log(nvtFee, 66)
-      // nvtFee = this.speedUpFee ? Number(nvtFee) * 1.4 : nvtFee * 1.2; // 提现手续费 加速*1.4 普通*1.2
-      nvtFee = this.speedUpFee ? Times(nvtFee, 1.4).toString() : Times(nvtFee, 1.2).toString();
+      // nvtFee = this.speedUpFee ? Number(nvtFee) * 1.8 : nvtFee * 1.5; // 提现手续费 加速*1.8 普通*1.5
+      nvtFee = this.speedUpFee ? Times(nvtFee, 1.8).toString() : Times(nvtFee, 1.5).toString();
       this.withdrawalNVTFee = nvtFee;
       // nerve链上nvt余额
       const nvtBalance = this.getNvtBalanceInfo()
@@ -668,7 +668,8 @@ export default {
       };
       const { chainId, assetId } = await this.getAssetNerveInfo(nerveInfoParams);
       // console.log(amount, 123465, swapScale, Times(amount, swapScale))
-      const swapAmount = timesDecimals(Times(amount, swapScale), 8).split(".")[0];
+      // const swapAmount = timesDecimals(Times(amount, swapScale), 8).split(".")[0];
+      const swapAmount = timesDecimals(amount, 8).split(".")[0];
       const nerveAddress = getCurrentAccount(this.address).address.NERVE;
       const params = {
         address: nerveAddress,
