@@ -672,7 +672,7 @@ export default {
       console.log("-=-=-=-=-=-=-=-=-=-=-", nvtFee)
       this.withdrawalNVTFee = nvtFee;
       // nerve链上nvt余额
-      const nvtBalance = this.getNvtBalanceInfo()
+      // const nvtBalance = this.getNvtBalanceInfo()
 
       let fee;
       this.needExtraFee = false; //nvt不足，需要额外转入一笔手续费
