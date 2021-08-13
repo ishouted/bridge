@@ -512,7 +512,24 @@ export default {
             this.fee = crossInFee;
           } else {
             const crossOutFee = await this.getCrossOutFee();
-            if (this.needExtraFee) {
+
+            // 统一收一笔主资产用作提现手续费
+            const symbol = chainToSymbol[this.fromNetwork];
+            const extraFee = this.splitFeeSymbol(crossOutFee).value;
+            this.extraFee = extraFee;
+            const oldCrossInFee = this.splitFeeSymbol(crossInFee).value;
+            // this.fee = Plus(oldCrossInFee, extraFee) + symbol
+            const asset = this.chooseAsset
+            if (asset.contractAddress) {
+              // 转入资产为token资产
+              this.fee = Plus(oldCrossInFee, Plus(crossFee, extraFee)) + symbol
+            } else if (asset.chainId === NULS_INFO.chainId && asset.assetId === NULS_INFO.assetId) {
+              // 转入资产为NULS
+              this.fee = Plus(oldCrossInFee, extraFee) + symbol
+            } else {
+              this.fee = Plus(Times(oldCrossInFee, 2), extraFee) + symbol
+            }
+            /* if (this.needExtraFee) {
               const symbol = chainToSymbol[this.fromNetwork];
               const extraFee = this.splitFeeSymbol(crossOutFee).value;
               this.extraFee = extraFee;
@@ -530,17 +547,27 @@ export default {
               }
             } else {
               this.fee = crossInFee + "+" + crossOutFee;
-            }
+            } */
           }
         } else {
           const crossInFee = await this.getCrossInFee();
           if (this.toNetwork === "NERVE") {
             this.fee = crossInFee;
           } else if (this.toNetwork === "NULS") {
-            // TODO 如果nvt不足续费0.01,闪兑nvt手续费
-            
-            // nerve链上nvt余额
+            // 默认闪兑一个nvt
+            const swapNvtFee = 1;
+            // 再次转入的异构链主资产数量
+            const hgcFee = await this.getSwapCost(swapNvtFee);
+            const symbol = chainToSymbol[this.fromNetwork];
+              this.extraFee = hgcFee;
+            // fee = hgcFee + chainToSymbol[this.fromNetwork];
+            const oldCrossInFee = this.splitFeeSymbol(crossInFee).value;
+            // this.fee = Plus(Times(oldCrossInFee, 2), hgcFee) + symbol + "+" + crossFee + "NULS";
+            // 不考虑nerve到nuls的0.01 后台去处理
+            this.fee = Plus(Times(oldCrossInFee, 2), hgcFee) + symbol;
+            /* // nerve链上nvt余额
             const nvtBalance = this.getNvtBalanceInfo()
+            // 如果nvt不足续费0.01,闪兑nvt手续费
             if (nvtBalance < 0.01) {
               // 如果nvt不足续费0.01,闪兑1个nvt
               const swapNvtFee = 1;
@@ -553,10 +580,15 @@ export default {
               this.fee = Plus(Times(oldCrossInFee, 2), hgcFee) + symbol + "+" + crossFee + "NULS";
             } else {
               this.fee = crossInFee + "+" + nerveToNulsFee;
-            }
+            } */
           } else {
             const crossOutFee = await this.getCrossOutFee();
-            if (this.needExtraFee) {
+            const symbol = chainToSymbol[this.fromNetwork];
+            const extraFee = this.splitFeeSymbol(crossOutFee).value;
+            this.extraFee = extraFee;
+            const oldCrossInFee = this.splitFeeSymbol(crossInFee).value;
+            this.fee = Plus(Times(oldCrossInFee, 2), extraFee) + symbol;
+            /* if (this.needExtraFee) {
               // nvt不足，需转入一笔异构链主资产闪兑为手续费
               const symbol = chainToSymbol[this.fromNetwork];
               const extraFee = this.splitFeeSymbol(crossOutFee).value;
@@ -566,7 +598,7 @@ export default {
               // this.fee = oldCrossInFee * 2 + Number(extraFee) + symbol;
             } else {
               this.fee = crossInFee + "+" + crossOutFee;
-            }
+            } */
           }
         }
         await this.checkAmountFee();
@@ -637,6 +669,7 @@ export default {
       // console.log(nvtFee, 66)
       // nvtFee = this.speedUpFee ? Number(nvtFee) * 1.8 : nvtFee * 1.5; // 提现手续费 加速*1.8 普通*1.5
       nvtFee = this.speedUpFee ? Times(nvtFee, 1.8).toString() : Times(nvtFee, 1.5).toString();
+      console.log("-=-=-=-=-=-=-=-=-=-=-", nvtFee)
       this.withdrawalNVTFee = nvtFee;
       // nerve链上nvt余额
       const nvtBalance = this.getNvtBalanceInfo()
@@ -647,14 +680,16 @@ export default {
       if (this.fromNetwork === "NERVE") {
         fee = nvtFee + "NVT";
       } else {
-        // debugger
-        if (nvtBalance && nvtBalance - nvtFee >= 0) {
+        const hgcFee = await this.getSwapCost(nvtFee);
+        fee = hgcFee + chainToSymbol[this.fromNetwork];
+        // 统一收一笔主资产用作提现手续费
+        /* if (nvtBalance && nvtBalance - nvtFee >= 0) {
           fee = nvtFee + "NVT";
         } else {
           this.needExtraFee = true;
           const hgcFee = await this.getSwapCost(nvtFee);
           fee = hgcFee + chainToSymbol[this.fromNetwork];
-        }
+        } */
       }
       return fee;
     },
@@ -999,10 +1034,11 @@ export default {
           }
         } else {
           if (this.toNetwork === "NULS") {
-            const currentAccount = getCurrentAccount(this.address);
+            // 不验证0.01
+            /* const currentAccount = getCurrentAccount(this.address);
             const nerveAddress = currentAccount.address.NERVE;
             const nulsBalance = await this.getNulsInfo(nerveAddress);
-            if (nulsBalance - crossFee < 0) flag = false;
+            if (nulsBalance - crossFee < 0) flag = false; */
           }
           let mainAssetFee
           feeList.map(v => {
