@@ -48,7 +48,8 @@ export default {
       loading: true,
       stepList: [],
       currentStep: 1,
-      destroyed: false
+      destroyed: false,
+      firstNULSHash: "", // nuls往异构链转账时，如果需要转入手续费，则第二条转入手续交易的nonce由第一条的hash来计算
     };
   },
 
@@ -177,9 +178,13 @@ export default {
      * @param needBroadcast 是否需要自己先广播
      */
     async constructTx(chain, type, transferInfo, txData, label, needBroadcast) {
-      const fn = async () => {
+      const fn = async (hash) => {
         const { pub, signAddress } = this.sessionInfo
         const transfer = new NTransfer({ chain, type });
+        // nuls往异构链转账时，如果需要转入手续费，则第二条转入手续交易的nonce由第一条的hash来计算
+        if (hash) {
+          transferInfo.nonce = hash.slice(-16)
+        }
         const inputOutput = await transfer.inputsOrOutputs(transferInfo);
         const data = {
           inputs: inputOutput.inputs,
@@ -188,6 +193,7 @@ export default {
           pub,
           signAddress,
         };
+        this.firstNULSHash = "";
         return await transfer.getTxHex(data);
       }
       const step = {
@@ -317,7 +323,7 @@ export default {
           const step = this.stepList[i];
           if (!step.done) {
             //  调用metamask转账/签名hash
-            let res = await step.fn();
+            let res = await step.fn(this.firstNULSHash);
             // console.log(res, 123);
             // 广播nuls转入nerve的交易, 转账交易、转入闪兑手续费交易
             if (step.needBroadcast) {
@@ -329,6 +335,8 @@ export default {
                   //异构链转入
                   broadcastData.txHash = res.hash;
                   updateTx.txHash = res.hash;
+                  // nuls往异构链转账时，如果需要转入手续费，则第二条转入手续交易的nonce由第一条的hash来计算
+                  this.firstNULSHash = fromChain === "NULS" ? res.hash : "";
                   // 将交易txHash及其他基本信息发给后台已记录该交易
                   await this.broadcast(broadcastData)
                 } else {

@@ -329,6 +329,7 @@ export class NTransfer {
   }
 
   async getNonce(info) {
+    if (info.nonce) return info.nonce;
     try {
       let data = {
         chain: this.chain,
