@@ -7,7 +7,7 @@
          <li v-for="item in accountList" :key="item.chain">
            <div>
              <img 
-              :src="getLogoSrc(item.symbol)"
+              :src="getLogoSrc(item.icon)"
               class="coin-img"
             >
             <span>{{ item.chain }}</span>
