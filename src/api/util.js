@@ -601,3 +601,24 @@ export function getCurrentAccount(address) {
   });
   return currentAccount;
 }
+
+export const withdrawFeeRate = {
+  Ethereum: {
+    normal: 1.3,
+    speed: 1.56
+  },
+  BSC: {
+    normal: 2,
+    speed: 2.4
+  },
+  Heco: {
+    normal: 5,
+    speed: 6
+  },
+  OKExChain: {
+    normal: 5,
+    speed: 6
+  }
+}
+
+export const withdrawalToNulsFee = 3

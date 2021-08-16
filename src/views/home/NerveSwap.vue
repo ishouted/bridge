@@ -140,7 +140,9 @@ import {
   Times,
   supportChainList,
   debounce,
-  getCurrentAccount
+  getCurrentAccount,
+  withdrawFeeRate,
+  withdrawalToNulsFee
 } from "@/api/util";
 import { ETransfer, getSymbolUSD, swapScale, swapSymbolConfig, crossFee } from "@/api/api";
 import { getContractCallData } from "@/api/nulsContractValidate";
@@ -555,7 +557,7 @@ export default {
             this.fee = crossInFee;
           } else if (this.toNetwork === "NULS") {
             // 默认闪兑一个nvt
-            const swapNvtFee = 1;
+            const swapNvtFee = withdrawalToNulsFee;
             // 再次转入的异构链主资产数量
             const hgcFee = await this.getSwapCost(swapNvtFee);
             const symbol = chainToSymbol[this.fromNetwork];
@@ -587,6 +589,7 @@ export default {
             const extraFee = this.splitFeeSymbol(crossOutFee).value;
             this.extraFee = extraFee;
             const oldCrossInFee = this.splitFeeSymbol(crossInFee).value;
+
             this.fee = Plus(Times(oldCrossInFee, 2), extraFee) + symbol;
             /* if (this.needExtraFee) {
               // nvt不足，需转入一笔异构链主资产闪兑为手续费
@@ -666,9 +669,13 @@ export default {
         isToken
       );
       let nvtFee = divisionDecimals(res, 8); // 异构跨链手续费-nvt
+      const type = this.speedUpFee ? "speed" : "normal"
+      const scale = withdrawFeeRate[this.toNetwork][type];
+
       // console.log(nvtFee, 66)
       // nvtFee = this.speedUpFee ? Number(nvtFee) * 1.8 : nvtFee * 1.5; // 提现手续费 加速*1.8 普通*1.5
-      nvtFee = this.speedUpFee ? Times(nvtFee, 1.8).toString() : Times(nvtFee, 1.5).toString();
+      // nvtFee = this.speedUpFee ? Times(nvtFee, 1.8).toString() : Times(nvtFee, 1.5).toString();
+      nvtFee = Times(nvtFee, scale).toString();
       console.log("-=-=-=-=-=-=-=-=-=-=-", nvtFee)
       this.withdrawalNVTFee = nvtFee;
       // nerve链上nvt余额

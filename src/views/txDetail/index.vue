@@ -84,6 +84,7 @@
       :modal-append-to-body="false"
       :close-on-click-modal="false"
       :close-on-press-escape="false"
+      :show-close="false"
       width="86%"
       top="5vh"
       class="retry-dialog"
@@ -152,7 +153,7 @@ int BG_CROSS_TX_FAIL = 9; */
 (7)WAIT_KYC: 等待进行KYC或联系客服提供链接
 */
 import BackBar from '@/components/BackBar'
-import { superLong, divisionAndFix, networkOrigin, copys, timesDecimals, divisionDecimals, Times, getCurrentAccount } from '@/api/util'
+import { superLong, divisionAndFix, networkOrigin, copys, timesDecimals, divisionDecimals, Times, getCurrentAccount, withdrawalToNulsFee, withdrawFeeRate } from '@/api/util'
 import moment from "moment"
 import { ETransfer, NTransfer, getSymbolUSD, swapScale, swapSymbolConfig, crossFee, reportError } from "@/api/api";
 import { MAIN_INFO, NULS_INFO, ETHNET } from "@/config";
@@ -321,19 +322,21 @@ export default {
     },
     // 检查交易是否失败或者签名流程未完成
     checkIsFailed() {
+      // failType 1、需要闪兑，但是未跨入手续费；2、闪兑失败；3、nerve跨出失败
       const { feeTxHash, convertSymbol, status } = this.txInfo;
       if (status <= 2 && convertSymbol && !feeTxHash) {
         // 返回状态为失败
         this.showRetry = true;
         this.failType = 1;
-      } else if (status === 4) {
+      }/*  else if (status === 4) {
         this.showRetry = true;
         this.failType = 2;
       } else if (status === 7) {
         this.showRetry = true;
         this.failType = 3;
-      } else {
+      }  */else {
         this.showRetry = false;
+        this.failType = "";
       }
     },
     // 每笔交易hash处理
@@ -510,7 +513,7 @@ export default {
           fee: baseCrossFee
         }
         type = 10
-        swapNVT = 1
+        swapNVT = withdrawalToNulsFee
       }
       return {
         transferInfo,
@@ -535,11 +538,11 @@ export default {
         heterogeneousChainUSD,
         isToken
       );
-      let nvtFee = divisionDecimals(res, 8); // 异构跨链手续费-nvt
-      // console.log(nvtFee, 66, nvtFee * 1.5)
-      console.log(Times(nvtFee, 1.5).toString(), 456)
-      // * 1.2 保证提现速度
-      return Times(nvtFee, 1.5).toString()
+      let nvtFee = divisionDecimals(res, 8); // 异构跨链手续费-nvtBalance
+
+      const type = "normal"
+      const scale = withdrawFeeRate[this.txInfo.toChain][type];
+      return Times(nvtFee, scale).toString()
     },
 
     // 组装其他链转入主资产到nerve交易
