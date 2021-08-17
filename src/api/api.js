@@ -10,6 +10,8 @@ const txsignatures = require("nerve-sdk-js/lib/model/txsignatures");
 import BufferReader from "nerve-sdk-js/lib/utils/bufferreader";
 import txs from "nerve-sdk-js/lib/model/txs";
 
+const Web3 = require('web3');
+
 // NULS NERVE跨链手续费
 export const crossFee = 0.01;
 const nSdk = {NERVE: nerve, NULS: nuls};
@@ -482,7 +484,7 @@ export class ETransfer {
         data: data
       };
     } else {
-      const amount = ethers.utils.parseEther(numbers);
+      const amount = ethers.utils.parseEther(numbers).toHexString();
       const iface = new ethers.utils.Interface(CROSS_OUT_ABI);
       const data = iface.functions.crossOut.encode([nerveAddress, amount, '0x0000000000000000000000000000000000000000']);
       transactionParameters = {
@@ -496,10 +498,12 @@ export class ETransfer {
       console.error('failed approveERC20' + failed);
       return {success: false, msg: 'failed crossIn' + failed}
     }
-    if (transactionParameters.from) {
-      delete transactionParameters.from;
-    }
-    return await this.sendTransaction(transactionParameters)
+    // if (transactionParameters.from) {
+    //   delete transactionParameters.from;
+    // }
+    transactionParameters.from = fromAddress;
+    return await this.sendTransactionDirect(transactionParameters)
+    // return await this.sendTransaction(transactionParameters)
   }
 
   // 普通链内转账
@@ -562,6 +566,22 @@ export class ETransfer {
     } catch (e) {
       return false;
     }
+  }
+
+  // 使用web3发送交易， OEC发送token使用ethers解析hash报错
+  async sendTransactionDirect(tx) {
+    console.log(tx)
+    const web3 = new Web3(window[this.walletType]);
+    return new Promise((resolve, reject) => {
+      web3.eth.sendTransaction(tx, function(err, hash) {
+        console.log(err, hash, "----callback----")
+        if (err) {
+          reject(err)
+        } else {
+          resolve({hash})
+        }
+      })
+    })
   }
 
   async sendTransaction(tx) {

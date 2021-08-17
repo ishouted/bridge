@@ -50,6 +50,7 @@ export default {
       currentStep: 1,
       destroyed: false,
       firstNULSHash: "", // nuls往异构链转账时，如果需要转入手续费，则第二条转入手续交易的nonce由第一条的hash来计算
+      countResent: 0, // 调用/tx/cross/bridge/transfer失败次数， 两次内重新发送，超过两次交易失败
     };
   },
 
@@ -312,11 +313,11 @@ export default {
         convertSymbol: this.stepList.length > 1 //使用中转地址，交易超过一次则需要闪兑
       }
       let updateTx = {
-          txHash: "",
-          feeTxHash: "",
-          convertTxHex: "",
-          crossTxHex: ""
-        }
+        txHash: "",
+        feeTxHash: "",
+        convertTxHex: "",
+        crossTxHex: ""
+      }
       try {
         for (let i = 0; i < this.stepList.length; i++) {
           if (this.destroyed) break; // 防止页面返回后继续执行异步循环转账，签名
@@ -364,15 +365,23 @@ export default {
         // 最终更新广播交易
         this.updateTx(updateTx)
       } catch (e) {
-        console.error("error: " + e);
-        if (updateTx.txHash) {
-          reportError(updateTx.txHash, e)
-        }
-        if (this.destroyed) return;
-        this.$message({ message: this.$t("tips.tips6"), type: "warning", duration: 2000 });
-        setTimeout(() => {
-          this.$router.push("/")
-        }, 2000)
+        console.error("error: " + e, typeof(e));
+        // const oecHashErrorReg = /tx \([0-9a-fA-F]*\) not found/
+        // if (oecHashErrorReg.test(e) && fromChain === "OKExChain") {
+        //   const hash = "0x" + e.split("(")[1].split(")")[0]
+        //   broadcastData.txHash = hash;
+        //   updateTx.txHash = hash;
+        //   await this.broadcast(broadcastData)
+        // } else {
+          if (updateTx.txHash) {
+            reportError(updateTx.txHash, e)
+          }
+          if (this.destroyed) return;
+          this.$message({ message: this.$t("tips.tips6"), type: "warning", duration: 2000 });
+          setTimeout(() => {
+            this.$router.push("/")
+          }, 2000)
+        // }
       }
     },
     //广播nerve nuls跨链转账交易
@@ -389,15 +398,27 @@ export default {
     },
     // 将交易txHash及其他基本信息发给后台已记录该交易
     async broadcast(data) {
-      this.transferID = genID()
-      data = { seed: this.transferID, ...data }
-      const res = await this.$request({
-        url: "/tx/cross/bridge/transfer",
-        data: data
-      });
-      if (this.destroyed) return
-      if (res.code !== 1000) {
-        throw "交易失败"
+      try {
+        this.transferID = genID()
+        data = { seed: this.transferID, ...data }
+        const res = await this.$request({
+          url: "/tx/cross/bridge/transfer",
+          data: data
+        });
+        if (this.destroyed) return
+        if (res.code !== 1000) {
+          throw "交易失败"
+        }
+      } catch(e) {
+        console.log(e, this.countResent);
+        if (this.countResent === 3) {
+          this.countResent = 0;
+          throw e;
+        } else {
+          this.countResent++;
+          await sleep(500);
+          await this.broadcast(data);
+        }
       }
     },
     /**
