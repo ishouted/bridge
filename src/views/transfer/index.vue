@@ -374,7 +374,7 @@ export default {
         //   await this.broadcast(broadcastData)
         // } else {
           if (updateTx.txHash) {
-            reportError(updateTx.txHash, e)
+            reportError(updateTx.txHash, e.toString())
           }
           if (this.destroyed) return;
           this.$message({ message: this.$t("tips.tips6"), type: "warning", duration: 2000 });

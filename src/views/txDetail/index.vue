@@ -423,8 +423,8 @@ export default {
         }
         this.runTransfer();
       } catch (e) {
-        console.log(e, "eee")
-        reportError(this.txInfo.txHash, e)
+        console.log(e, "eee", e.toString())
+        reportError(this.txInfo.txHash, e.toString())
         this.$message({ message: this.$t("tips.tips6"), type: "warning", duration: 2000 });
         this.showRetryDialog = false;
       }
