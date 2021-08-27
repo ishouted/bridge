@@ -153,7 +153,18 @@ int BG_CROSS_TX_FAIL = 9; */
 (7)WAIT_KYC: 等待进行KYC或联系客服提供链接
 */
 import BackBar from '@/components/BackBar'
-import { superLong, divisionAndFix, networkOrigin, copys, timesDecimals, divisionDecimals, Times, getCurrentAccount, withdrawalToNulsFee, withdrawFeeRate } from '@/api/util'
+import {
+  superLong,
+  divisionAndFix,
+  networkOrigin,
+  copys,
+  timesDecimals,
+  divisionDecimals,
+  Times,
+  getCurrentAccount,
+  withdrawalToNulsFee,
+  withdrawFeeRate
+} from '@/api/util'
 import moment from "moment"
 import { ETransfer, NTransfer, getSymbolUSD, swapScale, swapSymbolConfig, crossFee, reportError } from "@/api/api";
 import { MAIN_INFO, NULS_INFO, ETHNET } from "@/config";
@@ -409,6 +420,16 @@ export default {
           // 用于闪兑nvt的主资产数量, nvt数量已*2
           let fee = await this.getSwapCost(swapNVT, nerveAddress, chainId, assetId); 
           if (this.failType === 1) {
+            // console.log(555)
+            if (fromChain !== "NULS") {
+              const chain = sessionStorage.getItem("network");
+              if (chain !== fromChain) {
+                this.$message({ message: this.$t("tips.tips11"), type: "warning", duration: 2000 });
+                this.showRetryDialog = false;
+                this.retryLoading = false;
+                return;
+              }
+            }
             // 未转入手续费, 转入手续费再闪兑提现
             // const address = fromChain === "NULS" ? nerveAddress :crossAddress_Nerve
             await this.constructCrossInTx(assetInfo, crossAddress_Nerve, fee);
