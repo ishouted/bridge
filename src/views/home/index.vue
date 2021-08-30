@@ -4,12 +4,14 @@
     <div class="home-content" v-loading="loading">
       <div class="support-list" v-if="supportListShow">
         <span class="title">
-          Connect to a wallet
+          Connect wallet
         </span>
-        <p v-for="item in providerList" :key="item.name" @click="connectProvider(item.provider)">
-          {{item.name}}
-          <img :src="item.src" alt="">
-        </p>
+        <div class="providers-wrap">
+          <p v-for="item in providerList" :key="item.name" @click="connectProvider(item.provider)">
+            <img :src="item.src" alt="">
+            {{item.name}}
+          </p>
+        </div>
       </div>
       <div class="show-sign-button" v-else-if="showSign">
         <el-button type="primary" @click="derivedAddress">{{
@@ -66,33 +68,37 @@ import nerve from "nerve-sdk-js";
 import { supportChainList, getCurrentAccount } from "../../api/util";
 import MetaMask from "../../assets/img/metamask.svg";
 import Nabox from "../../assets/img/nabox.svg";
+import TrustWallet from "../../assets/img/trustwallet.svg"
+import Tokenpocket from "../../assets/img/Tokenpocket.svg"
+import Mathwallet from "../../assets/img/mathwallet.svg"
+import binancechain from "../../assets/img/binancechain.svg"
 import OKEx from "../../assets/img/okexchain.png";
+import safepal from "../../assets/img/safepal.svg";
+import coin98 from "../../assets/img/coin98.svg";
 
 
 const ethers = require("ethers");
 
-// function getAccountList() {
-//   return JSON.parse(localStorage.getItem("accountList")) || [];
-// }
-// function getCurrentAccount(address) {
-//   const accountList = getAccountList();
-//   const currentAccount = accountList.filter((item) => {
-//     return item.address.Ethereum.toLowerCase() === address.toLowerCase();
-//   });
-//   return currentAccount[0] || null;
-// }
 
 const isMobile = /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent);
 const MetaMaskProvider = "ethereum"
-const NaboxProvier = isMobile ? MetaMaskProvider : "NaboxWallet"
-const OKExProvier = isMobile ? MetaMaskProvider : "okexchain"
+const NaboxProvier = "NaboxWallet"
+const OKExProvier = "okexchain"
+const BSCProvider = "BinanceChain"
+// const Coin98Provider = "coin98"
 
 export default {
   data() {
     this.providerList = [
       { name: "MetaMask", src: MetaMask, provider: MetaMaskProvider },
       { name: "Nabox", src: Nabox, provider: NaboxProvier },
+      { name: "Trust Wallet", src: TrustWallet, provider: MetaMaskProvider },
+      { name: "TokenPocket", src: Tokenpocket, provider: MetaMaskProvider },
+      { name: "MathWallet", src: Mathwallet, provider: MetaMaskProvider },
+      { name: "Binance Chain", src: binancechain, provider: BSCProvider },
       { name: "OKEx Wallet", src: OKEx, provider: OKExProvier },
+      { name: "SafePal", src: safepal, provider: MetaMaskProvider },
+      { name: "Coin98", src: coin98, provider: MetaMaskProvider },
     ]
     return {
       loading: true,
@@ -194,7 +200,7 @@ export default {
     // 连接provider
     async connectProvider(provider) {
       if (!window[provider]) {
-        this.$message({ message: "Not found", type: "warning"});
+        this.$message({ message: "No provider was found", type: "warning"});
         return
       }
       try {
@@ -364,7 +370,7 @@ export default {
     border-radius: 10px;
   }
   .support-list {
-    width: 80%;
+    //width: 96%;
     margin: 0 auto;
     .title {
       font-size: 20px;
@@ -372,29 +378,47 @@ export default {
       line-height: 2;
       margin-bottom: 5px;
       display: inline-block;
+      margin-top: -10px;
+    }
+    .providers-wrap {
+      display: flex;
+      flex-wrap: wrap;
     }
     p {
+      width: 50%;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      height: 50px;
+      //justify-content: space-between;
+      height: 40px;
       // line-height: 50px;
-      padding: 0 20px;
+      padding: 0 15px;
       margin-bottom: 15px;
       border-radius: 16px;
-      background-color: rgb(239, 244, 245);
+      //background-color: rgb(239, 244, 245);
       transition: background-color 0.2s ease 0s;
       cursor: pointer;
-      color: rgb(31, 199, 212);
-      font-size: 16px;
+      color: #a1a4b1;
+      font-size: 14px;
       font-weight: 600;
+      border: 1px solid transparent;
       &:hover {
-        opacity: 0.65;
+        //opacity: 0.65;
+        border-color: #5bcaf9;
+        color: #333;
       }
       img {
         // margin-top: 7px;
-        width: 35px;
-        height: 33px;
+        width: 28px;
+        height: 28px;
+        margin-right: 10px;
+      }
+      @media screen and (max-width: 400px){
+        font-size: 12px;
+        padding: 0 8px;
+        img {
+          width: 22px;
+          height: 22px;
+        }
       }
     }
   }
@@ -560,8 +584,11 @@ export default {
       border: none;
       width: auto;
       .el-button {
-        color: @labelColor;
-        font-weight: bold;
+        //color: @labelColor;
+        //font-weight: bold;
+        font-size: 12px;
+        font-weight: normal;
+        color: #515B7D;
       }
     }
     .el-select .el-select__caret {
@@ -621,6 +648,7 @@ export default {
   .logo-img {
     width: 30px;
     height: 30px;
+    border-radius: 50%;
     margin-right: 5px;
   }
   .origin-chain {
@@ -669,6 +697,7 @@ export default {
       img {
         width: 100%;
         height: 100%;
+        border-radius: 50%;
       }
     }
     .asset-info {

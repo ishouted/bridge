@@ -367,7 +367,7 @@ export default {
           const symbol = v.symbol.toUpperCase()
           const contractAddress = v.contractAddress.toUpperCase();
           // console.log(search, symbol, contractAddress, 45)
-          return symbol.indexOf(search) > -1 || contractAddress.indexOf(search) > -1
+          return symbol.indexOf(search) > -1 || contractAddress === search
         })
       } else {
         this.filteredList = this.dialogCoinList
@@ -464,7 +464,7 @@ export default {
         // const decimals = this.chooseFromAsset.decimals || 8;
         const decimals = 8; // swft创建订单限制小数位数为8
         const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
-        if (this.available && Minus(Plus(val, this.transferFee), this.available) > 0) return
+        // if (this.available && Minus(Plus(val, this.transferFee), this.available) > 0) return
         if (patrn.exec(val) || val==="") {
           this.amount = val
           this.toAmount = this.swapRate ? this.swapRate * this.amount : "";
@@ -479,6 +479,8 @@ export default {
         msg = this.$t("tips.tips8") + this.min
       } else if (Minus(this.amount, this.max) > 0) {
         msg = this.$t("tips.tips9") + this.max
+      } else if (Minus(Plus(this.amount, this.transferFee), this.available) > 0) {
+        msg = this.$t("tips.tips12")
       }
       this.amountMsg = msg;
     },

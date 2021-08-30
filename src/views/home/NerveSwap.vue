@@ -62,6 +62,7 @@
           </template>
           <i class="el-icon-caret-bottom fw"></i>
         </div>
+        <el-button slot="append" @click="maxAmount">MAX</el-button>
       </el-input>
     </div>
     <div class="msg-wrap">
@@ -266,7 +267,7 @@ export default {
           const symbol = v.symbol.toUpperCase()
           const contractAddress = v.contractAddress.toUpperCase();
           // console.log(search, symbol, contractAddress, 45)
-          return symbol.indexOf(search) > -1 || contractAddress.indexOf(search) > -1
+          return symbol.indexOf(search) > -1 || contractAddress === search
         })
       } else {
         this.filteredList = this.assetsList
@@ -423,6 +424,11 @@ export default {
     },
     replaceImg(e) {
       e.target.src = defaultIcon;
+    },
+    maxAmount() {
+      // TODO 主资产时先计算手续费，扣除手续费后再max
+      if (this.amount === this.available) return;
+      this.validateAmount(this.available);
     },
     // 查询异构链token资产授权情况
     async checkCrossInAuthStatus() {

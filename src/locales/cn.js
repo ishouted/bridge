@@ -93,6 +93,7 @@ const cn = {
     tips9: "最大兑换数量: ",
     tips10: "创建订单失败",
     tips11: "当前网络与交易网络不一致",
+    tips12: "余额不足",
   },
 
   crossStatusType: {

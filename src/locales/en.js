@@ -93,6 +93,7 @@ const en = {
     tips9: "Maximum exchange quantity",
     tips10: "Failed to create order",
     tips11: "The current network is inconsistent with the trading network",
+    tips12: "Insufficient balance",
   },
 
   crossStatusType: {
