@@ -1,15 +1,15 @@
 <template>
   <div class="my-fee fee">
     <span class="label">{{ $t("public.fee") }}</span>
-      <el-tooltip
-        effect="dark"
-        :content="label || $t('home.home2')"
-        placement="top"
-        :append-to-body="false"
-        ref="mypop"
-      >
-        <span class="el-icon-info"></span>
-      </el-tooltip>
+<!--      <el-tooltip-->
+<!--        effect="dark"-->
+<!--        :content="label || $t('home.home2')"-->
+<!--        placement="top"-->
+<!--        :append-to-body="false"-->
+<!--        ref="mypop"-->
+<!--      >-->
+<!--        <span class="el-icon-info"></span>-->
+<!--      </el-tooltip>-->
       <div class=new-tooltip-wrap ref="wrap"></div>
     <slot></slot>
   </div>

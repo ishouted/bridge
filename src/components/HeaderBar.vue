@@ -220,7 +220,7 @@
     border-bottom: 1px solid #EBF0F3;
     background-color: #fff;
     .left img {
-      width: 120px;
+      width: 96px;
       margin-left: 5px;
       @media screen and (max-width: 400px){
         width: 75px;
