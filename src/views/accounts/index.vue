@@ -80,7 +80,8 @@ export default {
               address: v.address,
               chain: v.chain,
               symbol: v.symbol,
-              balance: divisionAndFix(v.balance, v.decimals, 8)
+              balance: divisionAndFix(v.balance, v.decimals, 8),
+              icon: v.icon
             })
           })
           const order = ["NERVE", "NULS", "Ethereum", "BSC", "Heco", "OKExChain"]

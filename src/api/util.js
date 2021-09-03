@@ -3,6 +3,18 @@ import {BigNumber} from 'bignumber.js'
 import copy from 'copy-to-clipboard'
 import { MAIN_INFO, NULS_INFO, ETHNET} from '@/config.js'
 import { post, request } from './https'
+import ETHLogo from "@/assets/img/mainAsset/eth.png";
+import BNBLogo from "@/assets/img/mainAsset/BSC.png";
+import HTLogo from "@/assets/img/mainAsset/Heco.png";
+import OKTLogo from "@/assets/img/mainAsset/OEC.png";
+import NULSLogo from "@/assets/img/mainAsset/NULS.png";
+import NVTLogo from "@/assets/img/mainAsset/Nerve.png";
+import ETHLogo_active from "@/assets/img/mainAsset/eth-active.png";
+import BNBLogo_active from "@/assets/img/mainAsset/BSC-active.png";
+import HTLogo_active from "@/assets/img/mainAsset/Heco-active.png";
+import OKTLogo_active from "@/assets/img/mainAsset/OEC-active.png";
+import NULSLogo_active from "@/assets/img/mainAsset/NULS-active.png";
+import NVTLogo_active from "@/assets/img/mainAsset/Nerve-active.png";
 
 /**
  * 10的N 次方
@@ -560,12 +572,12 @@ export function getLogoSrc(icon) {
 
 
 export const supportChainList = [
-  { label: "NERVE", value: "NERVE", symbol: "NVT", SwftChain: "NERVE", chainId: MAIN_INFO.chainId, assetId: MAIN_INFO.assetId },
-  { label: "NULS", value: "NULS", symbol:"NULS", SwftChain: "NULS", chainId: NULS_INFO.chainId, assetId: NULS_INFO.assetId },
-  { label: "Ethereum", value: "Ethereum", symbol:"ETH", ropsten: "0x3", SwftChain: "Ethereum", homestead: "0x1", chainId: 101, assetId: 1 },
-  { label: "BSC", value: "BSC", symbol:"BNB", ropsten: "0x61", homestead: "0x38", SwftChain: "BSC", chainId: 102, assetId: 1 },
-  { label: "Heco", value: "Heco", symbol:"HT", ropsten: "0x100", homestead: "0x80", SwftChain: "Heco", chainId: 103, assetId: 1 },
-  { label: "OKExChain", value: "OKExChain", symbol:"OKT", ropsten: "0x41", homestead: "0x42", SwftChain: "OKExChain", chainId: 104, assetId: 1 }
+  { label: "NERVE", value: "NERVE", symbol: "NVT", SwftChain: "NERVE", chainId: MAIN_INFO.chainId, assetId: MAIN_INFO.assetId, logo: NVTLogo, logoActive: NVTLogo_active},
+  { label: "NULS", value: "NULS", symbol:"NULS", SwftChain: "NULS", chainId: NULS_INFO.chainId, assetId: NULS_INFO.assetId, logo: NULSLogo, logoActive: NULSLogo_active },
+  { label: "Ethereum", value: "Ethereum", symbol:"ETH", ropsten: "0x3", SwftChain: "Ethereum", homestead: "0x1", chainId: 101, assetId: 1, logo: ETHLogo, logoActive: ETHLogo_active },
+  { label: "BSC", value: "BSC", symbol:"BNB", ropsten: "0x61", homestead: "0x38", SwftChain: "BSC", chainId: 102, assetId: 1, logo: BNBLogo, logoActive: BNBLogo_active },
+  { label: "Heco", value: "Heco", symbol:"HT", ropsten: "0x100", homestead: "0x80", SwftChain: "Heco", chainId: 103, assetId: 1, logo: HTLogo, logoActive: HTLogo_active},
+  { label: "OKExChain", value: "OKExChain", symbol:"OKT", ropsten: "0x41", homestead: "0x42", SwftChain: "OKExChain", chainId: 104, assetId: 1, logo: OKTLogo, logoActive: OKTLogo_active }
 ];
 
 export function debounce(fn, delay) {

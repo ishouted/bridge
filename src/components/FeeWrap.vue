@@ -25,9 +25,9 @@ export default {
     /* 
       tooltip插入到指定元素内
     */
-    this.$refs.wrap.appendChild(
-      this.$refs.mypop.popperVM.$el
-    )
+    // this.$refs.wrap.appendChild(
+    //   this.$refs.mypop.popperVM.$el
+    // )
   }
 }
 

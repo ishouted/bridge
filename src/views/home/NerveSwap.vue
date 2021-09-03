@@ -94,38 +94,40 @@
       }}</el-button>
     </div>
     <div class="pending-tx-tip" v-if="hasPendingTx">{{ $t("home.home25") }}</div>
-    <el-dialog
-      :title="$t('home.home6')"
-      :visible.sync="assetListModal"
-      :modal-append-to-body="false"
-      width="80%"
-      top="10vh"
-      class="assets-list-dialog"
-    >
-      <el-input v-model="searchVal" :placeholder="$t('home.home24')" class="search-input"></el-input>
-      <ul v-if="filteredList.length">
-        <li
-          v-for="item in filteredList"
-          :key="item.id"
-          @click="selectAsset(item)"
-          :class="{ active: chooseAsset && chooseAsset.id === item.id }"
-        >
-          <div class="logo-wrap">
-            <img :src="getLogoSrc(item.icon)" @error="replaceImg" alt="" />
-            <!--<img src="https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/N-logo.png" alt="">-->
-          </div>
-          <div class="asset-info">
-            <p>{{ item.symbol }}<span>{{"(" + item.registerChain + ")"}}</span></p>
-            <span
-              v-if="item.contractAddress && item.contractAddress.length > 20"
-            >
-              {{ $t("home.home9") + superLong(item.contractAddress) }}
-            </span>
-          </div>
-        </li>
-      </ul>
-      <p class="no-data" v-else>No Data</p>
-    </el-dialog>
+    <assets-dialog v-model="assetListModal" :list="assetsList" @selectAsset="selectAsset"></assets-dialog>
+
+<!--    <el-dialog-->
+<!--      :title="$t('home.home6')"-->
+<!--      :visible.sync="assetListModal"-->
+<!--      :modal-append-to-body="false"-->
+<!--      width="80%"-->
+<!--      top="10vh"-->
+<!--      class="assets-list-dialog"-->
+<!--    >-->
+<!--      <el-input v-model="searchVal" :placeholder="$t('home.home24')" class="search-input"></el-input>-->
+<!--      <ul v-if="filteredList.length">-->
+<!--        <li-->
+<!--          v-for="item in filteredList"-->
+<!--          :key="item.id"-->
+<!--          @click="selectAsset(item)"-->
+<!--          :class="{ active: chooseAsset && chooseAsset.id === item.id }"-->
+<!--        >-->
+<!--          <div class="logo-wrap">-->
+<!--            <img :src="getLogoSrc(item.icon)" @error="replaceImg" alt="" />-->
+<!--            &lt;!&ndash;<img src="https://nuls-cf.oss-us-west-1.aliyuncs.com/icon/N-logo.png" alt="">&ndash;&gt;-->
+<!--          </div>-->
+<!--          <div class="asset-info">-->
+<!--            <p>{{ item.symbol }}<span>{{"(" + item.registerChain + ")"}}</span></p>-->
+<!--            <span-->
+<!--              v-if="item.contractAddress && item.contractAddress.length > 20"-->
+<!--            >-->
+<!--              {{ $t("home.home9") + superLong(item.contractAddress) }}-->
+<!--            </span>-->
+<!--          </div>-->
+<!--        </li>-->
+<!--      </ul>-->
+<!--      <p class="no-data" v-else>No Data</p>-->
+<!--    </el-dialog>-->
   </div>
 </template>
 
@@ -148,7 +150,8 @@ import {
 import { ETransfer, getSymbolUSD, swapScale, swapSymbolConfig, crossFee } from "@/api/api";
 import { getContractCallData } from "@/api/nulsContractValidate";
 import defaultIcon from "@/assets/img/commonIcon.png";
-import FeeWrap from "@/components/FeeWrap"
+import FeeWrap from "@/components/FeeWrap";
+import AssetsDialog from "./AssetsDialog";
 
 
 // function getAccountList() {
@@ -214,7 +217,8 @@ export default {
     fromAddress: String
   },
   components: {
-    FeeWrap
+    FeeWrap,
+    AssetsDialog
   },
   watch: {
     address: {

@@ -105,37 +105,39 @@
     <div class="powered-by">
       <p>Powered By SWFT & NerveNetwork</p>
     </div>
-    <el-dialog
-      :title="$t('home.home6')"
-      :visible.sync="assetListModal"
-      :modal-append-to-body="false"
-      width="80%"
-      top="10vh"
-      class="assets-list-dialog"
-    >
-      <el-input v-model="searchVal" :placeholder="$t('home.home24')" class="search-input"></el-input>
-      <ul v-if="filteredList.length">
-        <li
-          v-for="item in filteredList"
-          :key="item.coinId"
-          @click="selectAsset(item)"
-          :class="checkActive(item)"
-        >
-          <div class="logo-wrap">
-            <img :src="getLogoSrc(item.icon)" @error="replaceImg" alt="" />
-          </div>
-          <div class="asset-info">
-            <p>{{ item.symbol }}<span>{{"(" + item.chain + ")"}}</span></p>
-            <span
-              v-if="item.contact && item.contact.length > 20"
-            >
-              {{ $t("home.home9") + superLong(item.contact) }}
-            </span>
-          </div>
-        </li>
-      </ul>
-      <p class="no-data" v-else>No Data</p>
-    </el-dialog>
+<!--    <el-dialog-->
+<!--      :title="$t('home.home6')"-->
+<!--      :visible.sync="assetListModal"-->
+<!--      :modal-append-to-body="false"-->
+<!--      width="80%"-->
+<!--      top="10vh"-->
+<!--      class="assets-list-dialog"-->
+<!--    >-->
+<!--      <el-input v-model="searchVal" :placeholder="$t('home.home24')" class="search-input"></el-input>-->
+<!--      <ul v-if="filteredList.length">-->
+<!--        <li-->
+<!--          v-for="item in filteredList"-->
+<!--          :key="item.coinId"-->
+<!--          @click="selectAsset(item)"-->
+<!--          :class="checkActive(item)"-->
+<!--        >-->
+<!--          <div class="logo-wrap">-->
+<!--            <img :src="getLogoSrc(item.icon)" @error="replaceImg" alt="" />-->
+<!--          </div>-->
+<!--          <div class="asset-info">-->
+<!--            <p>{{ item.symbol }}<span>{{"(" + item.chain + ")"}}</span></p>-->
+<!--            <span-->
+<!--              v-if="item.contact && item.contact.length > 20"-->
+<!--            >-->
+<!--              {{ $t("home.home9") + superLong(item.contact) }}-->
+<!--            </span>-->
+<!--          </div>-->
+<!--        </li>-->
+<!--      </ul>-->
+<!--      <p class="no-data" v-else>No Data</p>-->
+<!--    </el-dialog>-->
+    <assets-dialog v-model="assetListModal" :list="fromCoinList" @selectAsset="selectAsset" :showRegisterChain="false"></assets-dialog>
+    <swap-assets-dialog v-model="showToAssetsDialog" :list="toCoinList" @selectAsset="selectAsset"></swap-assets-dialog>
     <el-dialog
       :title="$t('home.home19')"
       :visible.sync="confirmModal"
@@ -243,6 +245,8 @@ import FeeWrap from "@/components/FeeWrap"
 import { networkOrigin, getCurrentAccount } from '../../api/util';
 import defaultIcon from "@/assets/img/commonIcon.png";
 import { ETransfer, NTransfer } from "@/api/api";
+import AssetsDialog from "@/views/home/AssetsDialog";
+import SwapAssetsDialog from "./SwapAssetsDialog";
 
 const swftFeeRate = 0.002;
 
@@ -260,18 +264,6 @@ valideNetwork.map(v=> {
   }
 })
 
-// function getAccountList() {
-//   return JSON.parse(localStorage.getItem("accountList")) || [];
-// }
-// function getCurrentAccount(address) {
-//   const accountList = getAccountList();
-//   const currentAccount = accountList.filter((item) => {
-//     return item.address.Ethereum === address;
-//   });
-//   return currentAccount[0] || null;
-// }
-
-
 export default {
   data () {
     return {
@@ -288,7 +280,7 @@ export default {
       available: 0,
       fromNetworkMsg: "", //from网络与插件网络不一致 / 数量验证失败
       amountMsg: "", //转账数量验证失败信息
-      dialogType: "from",
+      dialogType: "",
       max: "", // 最大兑换数
       min: "", //最小兑换数
       swapRate: "", // 兑换比例
@@ -300,7 +292,8 @@ export default {
       estimatedAmount: "", // 扣除手续费后预估到账数量
       transferFee: 0, // 发送交易消耗的手续费
       searchVal: "",
-      filteredList: []
+      filteredList: [],
+      showToAssetsDialog: false, // to资产选择弹窗
     }
   },
 
@@ -314,18 +307,13 @@ export default {
   },
 
   components: {
-    FeeWrap
+    FeeWrap,
+    AssetsDialog,
+    SwapAssetsDialog
+
   },
 
   watch: {
-    dialogType(val) {
-      if (!val) return;
-      if (val === "from") {
-        this.filteredList = this.dialogCoinList = this.fromCoinList;
-      } else {
-        this.filteredList = this.dialogCoinList = this.toCoinList;
-      }
-    },
     address: {
       immediate: true,
       handler(val) {
@@ -495,11 +483,10 @@ export default {
           const chain = networkToChain[v.mainNetwork]
           v.chain = chain.chain
           v.symbol = v.coinCode.split("(")[0]
-          /* v.chainId = chain.chainId
-          v.assetId = v.contact ? 0 : chain.assetId */
-          v.contractAddress = v.contact
+          // v.contractAddress = v.contact
+          v.registerChain = v.mainNetwork
+          v.id = v.coinId
         })
-        console.log(coins, 3333)
         this.supportList = coins.sort((a, b) => a.symbol > b.symbol ? 1 : -1);
         this.fromCoinList = this.dialogCoinList = this.supportList.filter(v => v.chain === this.fromNetwork);
       }
@@ -550,6 +537,7 @@ export default {
             this.available = await transfer.getEthBalance(this.fromAddress);
           }
         } catch (e) {
+          console.log(e, 666)
           this.available = 0;
           this.$message({ message: this.$t("tips.tips7"), type: "warning", duration: 1000 });
         }
@@ -570,8 +558,16 @@ export default {
     },
     showDialog(dialogType) {
       this.dialogType = dialogType;
-      this.assetListModal = true;
-      this.searchVal = ""
+      if (dialogType === "from") {
+        this.assetListModal = true;
+        this.searchVal = "";
+        this.filteredList = this.dialogCoinList = this.fromCoinList;
+      } else {
+        this.showToAssetsDialog = true;
+        this.filteredList = this.dialogCoinList = this.toCoinList;
+      }
+      // this.assetListModal = true;
+
     },
     checkActive(item) {
       if (this.dialogType === "from") {
