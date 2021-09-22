@@ -251,77 +251,96 @@ export default {
         if (!this.address) {
           await this.requestAccounts();
         }
-        const jsonRpcSigner = this.provider.getSigner();
-        let message = "Derive Multi-chain Address";
-        const signature = await jsonRpcSigner.signMessage(message);
-        const msgHash = ethers.utils.hashMessage(message);
-        const msgHashBytes = ethers.utils.arrayify(msgHash);
-        const recoveredPubKey = ethers.utils.recoverPublicKey(
-          msgHashBytes,
-          signature
+        let account, pub;
+        if (!this.address.startsWith("0x")) {
+         
+          if (!window.nabox) {
+            throw "Nabox not found"
+          }
+          pub = await window.nabox.getPub({
+            address: this.address
+          })
+          const address = ethers.utils.computeAddress(ethers.utils.hexZeroPad(ethers.utils.hexStripZeros('0x' + pub), 33));
+          account = {
+            address: {
+              Ethereum: address,
+              BSC: address,
+              Heco: address,
+              OKExChain: address
+            }
+          };
+        } else {
+          const jsonRpcSigner = this.provider.getSigner();
+          let message = "Derive Multi-chain Address";
+          const signature = await jsonRpcSigner.signMessage(message);
+          const msgHash = ethers.utils.hashMessage(message);
+          const msgHashBytes = ethers.utils.arrayify(msgHash);
+          const recoveredPubKey = ethers.utils.recoverPublicKey(
+            msgHashBytes,
+            signature
+          );
+          account = {
+            address: {
+              Ethereum: this.address,
+              BSC: this.address,
+              Heco: this.address,
+              OKExChain: this.address
+            }
+          };
+          if (recoveredPubKey.startsWith("0x04")) {
+            const compressPub = ethers.utils.computePublicKey(
+              recoveredPubKey,
+              true
+            );
+            pub = compressPub.slice(2);
+          } else {
+            throw "sign error"
+          }
+        }
+
+        account.pub = pub;
+        const { chainId, assetId, prefix } = MAIN_INFO;
+        const {
+          chainId: NULSChainId,
+          assetId: NULSAssetId,
+          prefix: NULSPrefix,
+        } = NULS_INFO;
+        // console.log(NULSChainId, NULSAssetId, NULSPrefix, 55)
+        account.address.NERVE = nerve.getAddressByPub(
+          chainId,
+          assetId,
+          pub,
+          prefix
         );
-        
-        const account = {
-          address: {
-            Ethereum: this.address,
-            BSC: this.address,
-            Heco: this.address,
-            OKExChain: this.address
-          },
-        };
-        /* const config = JSON.parse(sessionStorage.getItem("config"));
-        if (config.OKExChain) {
-          account.address.OKExChain = this.address;
-        } */
-        if (recoveredPubKey.startsWith("0x04")) {
-          const compressPub = ethers.utils.computePublicKey(
-            recoveredPubKey,
-            true
-          );
-          const pub = compressPub.slice(2);
-          account.pub = pub;
-          const { chainId, assetId, prefix } = MAIN_INFO;
-          const {
-            chainId: NULSChainId,
-            assetId: NULSAssetId,
-            prefix: NULSPrefix,
-          } = NULS_INFO;
-          // console.log(NULSChainId, NULSAssetId, NULSPrefix, 55)
-          account.address.NERVE = nerve.getAddressByPub(
-            chainId,
-            assetId,
-            pub,
-            prefix
-          );
-          account.address.NULS = nerve.getAddressByPub(
-            NULSChainId,
-            NULSAssetId,
-            pub,
-            NULSPrefix
-          );
-          const accountList = JSON.parse(localStorage.getItem("accountList")) || [];
-          const existIndex = accountList.findIndex(v => v.pub === account.pub);
-          // 原来存在就替换，找不到就push
-          if (existIndex > -1) {
-            accountList[existIndex] = account
-          } else {
-            accountList.push(account);
-          }
-          const syncRes = await this.syncAccount(pub, account.address);
-          if (syncRes) {
-            localStorage.setItem("accountList", JSON.stringify(accountList));
-            // 重新计算fromAddress
-            const address = this.address;
-            this.address = "";
-            setTimeout(()=> {
-              this.address = address;
-            }, 16)
-          } else {
-            this.$message({
-              type: "warning",
-              message: this.$t("tips.tips4"),
-            });
-          }
+        account.address.NULS = nerve.getAddressByPub(
+          NULSChainId,
+          NULSAssetId,
+          pub,
+          NULSPrefix
+        );
+
+        const accountList = JSON.parse(localStorage.getItem("accountList")) || [];
+        const existIndex = accountList.findIndex(v => v.pub === account.pub);
+        // 原来存在就替换，找不到就push
+        if (existIndex > -1) {
+          accountList[existIndex] = account
+        } else {
+          accountList.push(account);
+        }
+        const syncRes = await this.syncAccount(pub, account.address);
+        if (syncRes) {
+          localStorage.setItem("accountList", JSON.stringify(accountList));
+          // 重新计算fromAddress
+          const address = this.address;
+          this.address = "";
+          setTimeout(()=> {
+            this.address = address;
+          }, 16)
+        } else {
+          this.$message({
+            type: "warning",
+            message: this.$t("tips.tips4"),
+          });
         }
       } catch (e) {
         // console.log(e, 556)

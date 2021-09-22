@@ -26,6 +26,10 @@ Vue.prototype.$request = request;
 
 const network = isBeta ? "beta" : "main";
 
+if (development && window.__VUE_DEVTOOLS_GLOBAL_HOOK__) {
+  window.__VUE_DEVTOOLS_GLOBAL_HOOK__.Vue = App.constructor
+}
+
 async function getConfig(network) {
   try {
     const res = await request({url: "/api/chain/config", method: "get", network});
@@ -56,9 +60,6 @@ async function getConfig(network) {
     i18n,
     render: h => h(App)
   });
-  if (development && window.__VUE_DEVTOOLS_GLOBAL_HOOK__) {
-    window.__VUE_DEVTOOLS_GLOBAL_HOOK__.Vue = app.constructor
-  }
 }
 
 getConfig(network);
