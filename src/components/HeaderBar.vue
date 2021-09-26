@@ -23,11 +23,11 @@
         <ul class="support-network-list" v-show="showNetworkList">
           <li
             v-for="item in supportChainList"
-            :key="item.value"
-            :class="{'active': item.value === currentChain}"
-            @click="currentChain=item.value"
+            :key="item.chainName"
+            :class="{'active': item.chainName === currentChain}"
+            @click="switchChain(item)"
           >
-            {{ item.label }}
+            {{ item.chainName }}
           </li>
           <div class="pop-arrow"></div>
         </ul>
@@ -121,18 +121,20 @@
 
 <script>
   import { superLong, copys, networkOrigin, supportChainList } from '@/api/util'
-  import { isBeta } from '../api/util';
+  import { isBeta } from '@/api/util';
+  import { ETHNET } from "@/config"
 
   export default {
     data() {
-      this.supportChainList = supportChainList;
+      // this.supportChainList = supportChainList;
       return {
         showNetworkList: false,
         showMenu: false,
         currentChain: this.$store.state.network,
         lang: localStorage.getItem("lang") || "cn",
         showAccountDialog: false,
-        walletAddress: isBeta ? "http://beta.wallet.nerve.network" : "https://wallet.nerve.network"
+        walletAddress: isBeta ? "http://beta.wallet.nerve.network" : "https://wallet.nerve.network",
+        supportChainList: []
       };
     },
     props: {
@@ -163,6 +165,26 @@
       window.addEventListener("click", () => {
         if (this.showNetworkList) this.showNetworkList = false;
       }, false)
+
+      // const order = ["Ethereum", "BSC", "Heco", "OKExChain", "NULS", "NERVE"]
+      // list = list.sort((a, b) => {
+      //   return order.indexOf(a.chain) - order.indexOf(b.chain)
+      // })
+      const list = [];
+      supportChainList.map(v => {
+        list.push({
+          chainId: v[ETHNET],
+          rpcUrls: v.rpcUrl ? [v.rpcUrl[ETHNET]] : [],
+          chainName: v.value,
+          nativeCurrency: {
+            name: v.value,
+            symbol: v.symbol,
+            decimals: v.decimals,
+          },
+          blockExplorerUrls: [v.origin]
+        })
+      })
+      this.supportChainList = list;
     },
     methods: {
       superLong(str, len = 8) {
@@ -204,6 +226,32 @@
       },
       openLink(url) {
         window.open(url)
+      },
+      async switchChain(item) {
+        if (this.currentChain === item.chainName) return;
+        if (item.chainName === "NULS" || item.chainName === "NERVE") {
+          this.currentChain = item.chainName;
+          return;
+        }
+        try {
+          const providerType = sessionStorage.getItem("walletType");
+          const provider = window[providerType];
+          if (item.chainName !== "Ethereum") {
+            await provider.request({
+              method: "wallet_addEthereumChain",
+              params: [item]
+            });
+          } else {
+            await provider.request({
+              method: "wallet_switchEthereumChain",
+              params: [{ chainId: item.chainId }]
+            });
+          }
+          this.currentChain = item.chainName;
+        } catch (e) {
+          //
+          console.log(e, 89898)
+        }
       }
     },
   }
@@ -280,7 +328,7 @@
         .support-network-list {
           position: absolute;
           left: 20px;
-          z-index: 1;
+          z-index: 99999;
           width: 150px;
           padding: 6px 0;
           margin-top: 8px;

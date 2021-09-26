@@ -5,6 +5,8 @@ import store from './store'
 import i18n from './i18n'
 import {post, request} from './api/https'
 import { toThousands, isBeta } from "./api/util";
+import NotSupport from "@/components/NotSupport";
+import checkLocation from "@/api/checkLocation"
 // import './api/rem'
 // import VConsole from 'vconsole'
 // new VConsole()
@@ -62,20 +64,22 @@ async function getConfig(network) {
   });
 }
 
-getConfig(network);
-
-
-// 获取crossAddressMap
-request({url: "/api/common/config", method: "get"}).then(res => {
-  if (res.code === 1000 && res.data) {
-    localStorage.setItem("crossAddressMap", JSON.stringify(res.data))
+async function checkLocationBeforeLoad() {
+  const isMainland = await checkLocation();
+  if (!isMainland) {
+    getConfig(network);
+    // 获取crossAddressMap
+    request({url: "/api/common/config", method: "get"}).then(res => {
+      if (res.code === 1000 && res.data) {
+        localStorage.setItem("crossAddressMap", JSON.stringify(res.data))
+      }
+    }).catch(e => console.log("获取crossAddressMap失败" + e))
+  } else {
+    new Vue({
+      el: "#app",
+      render: h => h(NotSupport)
+    });
   }
-}).catch(e => console.log("获取crossAddressMap失败" + e))
+}
 
-// new Vue({
-//   el: "#app",
-//   router,
-//   store,
-//   i18n,
-//   render: h => h(App)
-// });
+checkLocationBeforeLoad();

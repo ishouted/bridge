@@ -82,8 +82,8 @@ const ethers = require("ethers");
 
 const isMobile = /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent);
 const MetaMaskProvider = "ethereum"
-const NaboxProvier = "NaboxWallet"
-const OKExProvier = "okexchain"
+const NaboxProvider = "NaboxWallet"
+const OKExProvider = "okexchain"
 const BSCProvider = "BinanceChain"
 // const Coin98Provider = "coin98"
 
@@ -91,12 +91,12 @@ export default {
   data() {
     this.providerList = [
       { name: "MetaMask", src: MetaMask, provider: MetaMaskProvider },
-      { name: "Nabox", src: Nabox, provider: NaboxProvier },
+      { name: "Nabox", src: Nabox, provider: NaboxProvider },
       { name: "Trust Wallet", src: TrustWallet, provider: MetaMaskProvider },
       { name: "TokenPocket", src: Tokenpocket, provider: MetaMaskProvider },
       { name: "MathWallet", src: Mathwallet, provider: MetaMaskProvider },
       { name: "Binance Chain", src: binancechain, provider: BSCProvider },
-      { name: "OKEx Wallet", src: OKEx, provider: OKExProvier },
+      { name: "OKEx Wallet", src: OKEx, provider: OKExProvider },
       { name: "SafePal", src: safepal, provider: MetaMaskProvider },
       { name: "Coin98", src: coin98, provider: MetaMaskProvider },
     ]
@@ -136,10 +136,10 @@ export default {
       immediate: true,
       handler(val) {
         if (!val) return;
-        const sessionNetwork = sessionStorage.getItem("network");
-        const NChains = ["NERVE", "NULS"]
-        if (NChains.indexOf(sessionNetwork) > -1) return;
-        const chain = supportChainList.filter(v => v[ETHNET] === val)[0];
+        // const sessionNetwork = sessionStorage.getItem("network");
+        // const NChains = ["NERVE", "NULS"]
+        // if (NChains.indexOf(sessionNetwork) > -1) return;
+        const chain = supportChainList.find(v => v[ETHNET] === val);
         chain && this.$store.commit("changeNetwork", chain.value)
       }
     }
@@ -239,6 +239,7 @@ export default {
     //监听网络改变
     listenNetworkChange() {
       this.wallet.on("chainChanged", (chainId) => {
+        // console.log(chainId, 666)
         if (chainId && this.walletType) {
           this.fromChainId = this.parseChainId(chainId);
         }
@@ -332,6 +333,7 @@ export default {
           localStorage.setItem("accountList", JSON.stringify(accountList));
           // 重新计算fromAddress
           const address = this.address;
+          this.switchNetwork(address);
           this.address = "";
           setTimeout(()=> {
             this.address = address;
@@ -363,15 +365,24 @@ export default {
         url: "/wallet/sync",
         data: { pubKey: pub, addressList },
       });
-      if (res.code === 1000) {
-        return true;
-      }
-      return false;
+      return res.code === 1000;
     },
 
     quit() {
       this.setConfig(null);
     },
+    switchNetwork(address) {
+      // 连接插件时如果是nuls、nerve设置network为nuls/nerve
+      if (!address.startsWith("0x")) {
+        let network
+        if (address.startsWith("tNULS") || address.startsWith("NULS")) {
+          network = "NULS"
+        } else {
+          network = "NERVE"
+        }
+        this.$store.commit("changeNetwork", network)
+      }
+    }
   },
 };
 </script>

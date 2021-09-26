@@ -1,8 +1,8 @@
 import nerve from 'nerve-sdk-js'
 import {BigNumber} from 'bignumber.js'
 import copy from 'copy-to-clipboard'
-import { MAIN_INFO, NULS_INFO, ETHNET} from '@/config.js'
-import { post, request } from './https'
+import {MAIN_INFO, NULS_INFO, ETHNET} from '@/config.js'
+import {post, request} from './https'
 import ETHLogo from "@/assets/img/mainAsset/eth.png";
 import BNBLogo from "@/assets/img/mainAsset/BSC.png";
 import HTLogo from "@/assets/img/mainAsset/Heco.png";
@@ -103,17 +103,18 @@ export function divisionAndFix(nu, decimals = 8, fix) {
   const newFix = fix ? fix : decimals
   const str = new BigNumber(Division(nu, Power(decimals))).toFixed(newFix)
   const pointIndex = str.indexOf(".");
-  let lastStr = str.substr(str.length-1);
+  let lastStr = str.substr(str.length - 1);
   let lastIndex = str.length;
-  while(lastStr == 0 && lastIndex >= pointIndex) {
+  while (lastStr == 0 && lastIndex >= pointIndex) {
     lastStr = str.substr(lastIndex - 1, 1);
     if (lastStr == 0) {
-      lastIndex = lastIndex -1
+      lastIndex = lastIndex - 1
     }
   }
-  lastIndex = str.substr(lastIndex - 1 , 1) === "." ? lastIndex -1 : lastIndex
-  return str.substring(0,lastIndex)
+  lastIndex = str.substr(lastIndex - 1, 1) === "." ? lastIndex - 1 : lastIndex
+  return str.substring(0, lastIndex)
 }
+
 /**
  * @disc: 验证密码
  * @params:  accountInfo
@@ -181,7 +182,7 @@ export function addressInfo(type) {
     if (type === 0) {
       return addressList
     } else {
-      for (let item  of addressList) {
+      for (let item of addressList) {
         if (item.selection) {
           return item
         }
@@ -359,7 +360,7 @@ export function equalsObj(oldData, newData) {
     for (const key in oldData) {
       if (oldData.hasOwnProperty(key)) {
         if (!equalsObj(oldData[key], newData[key]))
-        //对象中具有不相同属性 返回false
+          //对象中具有不相同属性 返回false
           return false;
       }
     }
@@ -367,7 +368,7 @@ export function equalsObj(oldData, newData) {
     //类型为数组并且数组长度相同
     for (let i = 0, length = oldData.length; i < length; i++) {
       if (!equalsObj(oldData[i], newData[i]))
-      //如果数组元素中具有不相同元素,返回false
+        //如果数组元素中具有不相同元素,返回false
         return false;
     }
   } else {
@@ -463,7 +464,7 @@ export async function getSymbolInfo(chainId, assetId, refresh = false) {
   if (!assetId || !chainId) return;
   const symbol = chainId + '-' + assetId;
   let coinInfo = JSON.parse(sessionStorage.getItem("coinInfo")) || {};
-  if (coinInfo[symbol]&&!refresh) {
+  if (coinInfo[symbol] && !refresh) {
     return coinInfo[symbol]
   }
   try {
@@ -572,17 +573,100 @@ export function getLogoSrc(icon) {
 
 
 export const supportChainList = [
-  { label: "NERVE", value: "NERVE", symbol: "NVT", SwftChain: "NERVE", chainId: MAIN_INFO.chainId, assetId: MAIN_INFO.assetId, logo: NVTLogo, logoActive: NVTLogo_active},
-  { label: "NULS", value: "NULS", symbol:"NULS", SwftChain: "NULS", chainId: NULS_INFO.chainId, assetId: NULS_INFO.assetId, logo: NULSLogo, logoActive: NULSLogo_active },
-  { label: "Ethereum", value: "Ethereum", symbol:"ETH", ropsten: "0x3", SwftChain: "Ethereum", homestead: "0x1", chainId: 101, assetId: 1, logo: ETHLogo, logoActive: ETHLogo_active },
-  { label: "BSC", value: "BSC", symbol:"BNB", ropsten: "0x61", homestead: "0x38", SwftChain: "BSC", chainId: 102, assetId: 1, logo: BNBLogo, logoActive: BNBLogo_active },
-  { label: "Heco", value: "Heco", symbol:"HT", ropsten: "0x100", homestead: "0x80", SwftChain: "Heco", chainId: 103, assetId: 1, logo: HTLogo, logoActive: HTLogo_active},
-  { label: "OKExChain", value: "OKExChain", symbol:"OKT", ropsten: "0x41", homestead: "0x42", SwftChain: "OKExChain", chainId: 104, assetId: 1, logo: OKTLogo, logoActive: OKTLogo_active }
+  {
+    label: "Ethereum",
+    value: "Ethereum",
+    symbol: "ETH",
+    ropsten: "0x3",
+    SwftChain: "Ethereum",
+    homestead: "0x1",
+    chainId: 101,
+    assetId: 1,
+    logo: ETHLogo,
+    logoActive: ETHLogo_active,
+    origin: networkOrigin.Ethereum
+  },
+  {
+    label: "BSC",
+    value: "BSC",
+    symbol: "BNB",
+    ropsten: "0x61",
+    homestead: "0x38",
+    SwftChain: "BSC",
+    chainId: 102,
+    assetId: 1,
+    logo: BNBLogo,
+    logoActive: BNBLogo_active,
+    origin: networkOrigin.BSC,
+    decimals: 18,
+    rpcUrl: {
+      ropsten: "https://data-seed-prebsc-1-s1.binance.org:8545/",
+      homestead: "https://bsc-dataseed.binance.org/"
+    }
+  },
+  {
+    label: "Heco",
+    value: "Heco",
+    symbol: "HT",
+    ropsten: "0x100",
+    homestead: "0x80",
+    SwftChain: "Heco",
+    chainId: 103,
+    assetId: 1,
+    logo: HTLogo,
+    logoActive: HTLogo_active,
+    origin: networkOrigin.Heco,
+    decimals: 18,
+    rpcUrl: {
+      ropsten: "https://http-testnet.hecochain.com",
+      homestead: "https://http-mainnet.hecochain.com"
+    }
+  },
+  {
+    label: "OKExChain",
+    value: "OKExChain",
+    symbol: "OKT",
+    ropsten: "0x41",
+    homestead: "0x42",
+    SwftChain: "OKExChain",
+    chainId: 104,
+    assetId: 1,
+    logo: OKTLogo,
+    logoActive: OKTLogo_active,
+    origin: networkOrigin.OKExChain,
+    decimals: 18,
+    rpcUrl: {
+      ropsten: "https://exchaintestrpc.okex.org",
+      homestead: "https://exchainrpc.okex.org"
+    }
+  },
+  {
+    label: "NULS",
+    value: "NULS",
+    symbol: "NULS",
+    SwftChain: "NULS",
+    chainId: NULS_INFO.chainId,
+    assetId: NULS_INFO.assetId,
+    logo: NULSLogo,
+    logoActive: NULSLogo_active,
+    origin: networkOrigin.NULS
+  },
+  {
+    label: "NERVE",
+    value: "NERVE",
+    symbol: "NVT",
+    SwftChain: "NERVE",
+    chainId: MAIN_INFO.chainId,
+    assetId: MAIN_INFO.assetId,
+    logo: NVTLogo,
+    logoActive: NVTLogo_active,
+    origin: networkOrigin.NERVE
+  }
 ];
 
 export function debounce(fn, delay) {
   let timer
-  return function() {
+  return function () {
     const args = arguments;
     if (timer) {
       clearTimeout(timer);
