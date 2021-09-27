@@ -226,9 +226,12 @@ export default {
     //监听账户改变
     listenAccountChange() {
       this.wallet.on("accountsChanged", (accounts) => {
-        // console.log(accounts, "===accounts-changed===")
+        console.log(accounts, "===accounts-changed===")
         if (accounts.length && this.walletType) {
           this.address = accounts[0];
+          if (this.address && !this.address.startsWith("0x")) {
+            this.switchNetwork(this.address)
+          }
           // this.getBalance();
         } else {
           this.setConfig(null)
@@ -239,7 +242,7 @@ export default {
     //监听网络改变
     listenNetworkChange() {
       this.wallet.on("chainChanged", (chainId) => {
-        // console.log(chainId, 666)
+        console.log(chainId, "===chainId-changed===")
         if (chainId && this.walletType) {
           this.fromChainId = this.parseChainId(chainId);
         }
