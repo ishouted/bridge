@@ -203,6 +203,9 @@ export default {
         this.$message({ message: "No provider was found", type: "warning"});
         return
       }
+      if (isMobile) {
+        provider = MetaMaskProvider
+      }
       try {
         this.setConfig(provider)
         await this.initConnect();
