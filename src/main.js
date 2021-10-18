@@ -7,7 +7,6 @@ import {post, request} from './api/https'
 import { toThousands, isBeta } from "./api/util";
 import NotSupport from "@/components/NotSupport";
 import checkLocation from "@/api/checkLocation";
-import globalMixin from './mixin';
 // import './api/rem'
 // import VConsole from 'vconsole'
 // new VConsole()
@@ -26,8 +25,6 @@ Vue.filter('toThousands', toThousands)
 Vue.prototype.$post = post;
 
 Vue.prototype.$request = request;
-
-Vue.mixin(globalMixin);
 
 const network = isBeta ? "beta" : "main";
 
