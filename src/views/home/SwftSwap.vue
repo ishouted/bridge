@@ -55,7 +55,7 @@
       </div>
       <el-input
         class="amount-inner"
-        placeholder="--"
+        placeholder="0"
         disabled
         :value="toAmount"
       >
@@ -383,8 +383,6 @@ export default {
       return true;
     },
   },
-
-  created() {},
 
   mounted() {
     this.getCoins();

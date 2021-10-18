@@ -80,7 +80,7 @@ import coin98 from "../../assets/img/coin98.svg";
 const ethers = require("ethers");
 
 
-const isMobile = /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent);
+const isMobile = /Android|webOS|iPhone|iPad|BlackBerry/i.test(navigator.userAgent);
 const MetaMaskProvider = "ethereum"
 const NaboxProvider = "NaboxWallet"
 const OKExProvider = "okexchain"
@@ -156,6 +156,9 @@ export default {
   },
 
   created() {
+    if (typeof this.$route.query.loginOut === 'boolean' && this.$route.query.loginOut === true) {
+      this.setConfig(null);
+    }
     if (isMobile) {
       sessionStorage.setItem("walletType", this.walletType);
     }
@@ -166,7 +169,7 @@ export default {
 
   methods: {
     async initConnect() {
-      console.log(this.walletType, 123, window[this.walletType])
+      // console.log(this.walletType, 123, window[this.walletType])
       if (!this.walletType || !window[this.walletType]) {
         sessionStorage.removeItem("walletType")
         this.loading = false;
@@ -176,6 +179,8 @@ export default {
       this.address = this.wallet.selectedAddress;
       if (!this.address) {
         await this.requestAccounts();
+      } else {
+        this.$store.commit("changeSelectAddress", this.address);
       }
       this.fromChainId = this.parseChainId(this.wallet.chainId);
       this.provider = new ethers.providers.Web3Provider(this.wallet);
@@ -194,7 +199,8 @@ export default {
     async requestAccounts() {
       const res = await this.wallet.request({ method: "eth_requestAccounts" });
       if (res.length) {
-        this.address = res[0]
+        this.address = res[0];
+        this.$store.commit("changeSelectAddress", this.address);
       }
     },
     // 连接provider

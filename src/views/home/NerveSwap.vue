@@ -15,7 +15,7 @@
       </div>
       <div class="to">
         <span class="label">{{ $t("home.home5") }}</span>
-        <el-select v-model="toNetwork" placeholder="">
+        <el-select @change="selectChange" v-model="toNetwork" placeholder="">
           <el-option
             v-for="item in networkList"
             :key="item.value"
@@ -35,7 +35,7 @@
       </div>
       <el-input
         class="amount-inner"
-        placeholder="0.0"
+        placeholder="0"
         :value="amount"
         @input="validateAmount"
       >
@@ -204,7 +204,9 @@ export default {
       speedUpFee: false, //是否加速
       searchVal: "",
       filteredList: [],
-      hasPendingTx: false
+      hasPendingTx: false,
+      isMainAsset: false, // 是否为主资产
+      maxClick: false // 点击最大
     }
   },
 
@@ -246,6 +248,7 @@ export default {
         this.checkNetwork(val);
         if (val === this.toNetwork) {
           this.toNetwork = "";
+          this.isMainAsset = false;
         }
       },
     },
@@ -282,6 +285,18 @@ export default {
         // console.log(9995555)
         // this.checkHasPendingTx()
       }
+    },
+    fee: {
+      handler(val) {
+        if (val) {
+          const { value } = this.splitFeeSymbol(val);
+          if (this.amount && this.isMainAsset && this.maxClick) {
+            this.amount = Minus(this.available, value);
+            this.checkAmountFee();
+          }
+        }
+      },
+      deep: true
     }
   },
 
@@ -376,6 +391,7 @@ export default {
       this.needExtraFee = false;
       this.extraFee = "";
       this.NULSContract = false;
+      this.isMainAsset = false;
       this.clearGetAllowanceTimer();
     },
     // 查询可跨链资产
@@ -400,6 +416,9 @@ export default {
     },
     // 下拉选择资产
     async selectAsset(asset) {
+      this.isMainAsset = false;
+      this.maxClick = false;
+      this.amountMsg = "";
       this.amount = "";
       this.available = 0;
       this.chooseAsset = asset;
@@ -431,8 +450,9 @@ export default {
     },
     maxAmount() {
       // TODO 主资产时先计算手续费，扣除手续费后再max
+      this.maxClick = true;
       if (this.amount === this.available) return;
-      this.validateAmount(this.available);
+      this.validateAmount(this.available, true);
     },
     // 查询异构链token资产授权情况
     async checkCrossInAuthStatus() {
@@ -460,11 +480,16 @@ export default {
         },
       });
       if (res.code === 1000) {
+        const config = JSON.parse(sessionStorage.getItem('config'));
+        this.isMainAsset = config[this.fromNetwork].assetId === res.data.assetId && config[this.fromNetwork].chainId === res.data.chainId;
         this.available = divisionDecimals(res.data.balance, res.data.decimals);
         this.getTransferFee();
       }
     },
-    validateAmount(val) {
+    validateAmount(val, flag=false) {
+      if (!flag) {
+        this.maxClick = false;
+      }
       const decimals = this.chooseAsset && this.chooseAsset.decimals || 8;
       const patrn = new RegExp("^([1-9][\\d]{0,20}|0)(\\.[\\d]{0," + decimals + "})?$");
       if (patrn.exec(val)|| val==="") {
@@ -477,7 +502,7 @@ export default {
     // 计算交易手续费
     async getTransferFee() {
       try {
-        if (!this.chooseAsset || !Number(this.amount)) {
+        if (!this.isMainAsset && (!this.chooseAsset || !Number(this.amount))) {
           this.fee = "";
           this.feeLoading = false;
           return;
@@ -812,9 +837,10 @@ export default {
         assetsChainId: asset.chainId,
         assetsId: asset.assetId,
       }
-      const { chainId, assetId } = await this.getAssetNerveInfo(
-        nerveInfoParams
-      );
+      const { nerveChainId: chainId, nerveAssetId: assetId } = this.chooseAsset;
+      // const { chainId, assetId } = await this.getAssetNerveInfo(
+      //   nerveInfoParams
+      // );
       const config = JSON.parse(sessionStorage.getItem("config"));
 
       const mainAssetInfo = config[this.fromNetwork];
@@ -916,14 +942,15 @@ export default {
           assetsChainId: fromChainInfo.chainId,
           assetsId: fromChainInfo.assetId,
         }
-        const fromAssetOnNerve = await this.getAssetNerveInfo(
-          nerveInfoParams
-        );
+        const { nerveChainId: chainId, nerveAssetId: assetId } = this.chooseAsset;
+        // const fromAssetOnNerve = await this.getAssetNerveInfo(
+        //   nerveInfoParams
+        // );
         swapInfo = {
           fromToken: {
             symbol: swapSymbolConfig[fromChainInfo.symbol],
-            chainId: fromAssetOnNerve.chainId,
-            assetId: fromAssetOnNerve.assetId
+            chainId,
+            assetId
           },
           toToken: {
             symbol: "NVT",

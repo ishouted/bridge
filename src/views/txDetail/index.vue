@@ -1,6 +1,6 @@
 <template>
   <div class="tx-detail second-page">
-    <back-bar :backTitle="$t('txDetail.txDetail1')"></back-bar>
+    <HeaderBar :address="$route.query.address" @quit="quit" />
     <div class="content" v-loading="loading">
       <div class="content-inner" v-if="!isSwftDetail">
         <div 
@@ -152,7 +152,8 @@ int BG_CROSS_TX_FAIL = 9; */
 (6)ERROR/error:正在处理的订单 
 (7)WAIT_KYC: 等待进行KYC或联系客服提供链接
 */
-import BackBar from '@/components/BackBar'
+// import BackBar from '@/components/BackBar';
+import HeaderBar from "@/components/HeaderBar";
 import {
   superLong,
   divisionAndFix,
@@ -208,7 +209,7 @@ export default {
   },
 
   components: {
-    BackBar
+    HeaderBar
   },
 
   watch: {
@@ -236,7 +237,6 @@ export default {
     }
   },
 
-  created() {},
 
   mounted() {
     const {txHash, orderId} = this.$route.query;
@@ -270,6 +270,9 @@ export default {
   },
 
   methods: {
+    quit() {
+      this.$router.replace({ path: '/', query: { loginOut: true } });
+    },
     setTimer() {
       this.getDetail();
       clearInterval(this.timer)
@@ -841,7 +844,7 @@ export default {
 }
 
 </script>
-<style lang="less">
+<style lang="less" scoped>
 .tx-detail {
   .content-inner {
     position: relative;

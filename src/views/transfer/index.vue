@@ -71,7 +71,7 @@ export default {
         message: this.$t("transfer.transfer6"),
         type: "warning",
       });
-      this.$router.push("/");
+      this.$router.replace("/");
       return;
     }
     this.sessionInfo = info;
@@ -168,7 +168,7 @@ export default {
         console.log(e, "===组装交易失败===");
         this.$message({ message: this.$t("tips.tips6"), type: "warning", duration: 2000 });
         setTimeout(() => {
-          this.$router.push("/")
+          this.$router.replace("/")
         }, 2000)
       }
       this.loading = false;
@@ -379,7 +379,7 @@ export default {
           if (this.destroyed) return;
           this.$message({ message: this.$t("tips.tips6"), type: "warning", duration: 2000 });
           setTimeout(() => {
-            this.$router.push("/")
+            this.$router.replace("/")
           }, 2000)
         // }
       }
@@ -445,7 +445,7 @@ export default {
         })
       }
       setTimeout(() => {
-        this.$router.push("/")
+        this.$router.replace("/")
       }, 2000)
     }
   },

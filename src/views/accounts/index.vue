@@ -1,6 +1,6 @@
 <template>
   <div class="account-list second-page">
-    <back-bar :backTitle="$t('accounts.accounts1')"></back-bar>
+    <HeaderBar :address="$route.query.address" @quit="quit" />
     <div class="content" v-loading="loading">
        <h3 class="tc">{{ $t("accounts.accounts2") }}</h3>
        <ul>
@@ -27,7 +27,8 @@
 </template>
 
 <script>
-import BackBar from '@/components/BackBar'
+// import BackBar from '@/components/BackBar'
+import HeaderBar from "@/components/HeaderBar";
 import { superLong, divisionAndFix, getLogoSrc, networkOrigin, copys } from '@/api/util'
 export default {
   data () {
@@ -38,7 +39,7 @@ export default {
   },
 
   components: {
-    BackBar
+    HeaderBar
   },
 
   watch: {},
@@ -59,6 +60,9 @@ export default {
   },
 
   methods: {
+    quit() {
+      this.$router.replace({ path: '/', query: { loginOut: true } });
+    },
     async getBalance() {
       // this.loading = true;
       const address = this.$route.query.address;
@@ -117,7 +121,7 @@ export default {
 }
 
 </script>
-<style lang="less">
+<style lang="less" scoped>
 .account-list {
   .content {
     padding: 0 15px;
