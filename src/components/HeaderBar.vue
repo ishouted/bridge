@@ -1,6 +1,6 @@
 <template>
   <div class="header">
-    <div class="left">
+    <div class="left cursor_pointer" @click="$router.replace('/')">
       <img src="../assets/img/nervelogo.svg" alt="">
       <!-- NerveBridge -->
     </div>
@@ -39,7 +39,7 @@
         <transition name="model">
           <div class="model" v-show="showMenu" @click="toggleMenu"></div>
         </transition>
-        <div class="content" :class="showMenu ? 'show' : 'hide'">
+        <div class="header_content" :class="showMenu ? 'show' : 'hide'">
           <div class="account">
             <ul class="menu-wrap">
               <li @click="toUrl('txList')">
@@ -51,19 +51,19 @@
                 <span>{{ $t("header.header2") }}</span>
               </li>
               <li>
-                <a :href="walletAddress" target="_blank">
+                <a :href="walletAddress" :target="isMobile && '_self' || '_blank'">
                   <i class="iconfont icon-qianbao"></i>
                   <span>{{ $t("header.header9") }}</span>
                 </a>
               </li>
               <li>
-                <a href="https://forms.gle/XFMrcYQLhapYyLaSA" target="_blank">
+                <a href="https://forms.gle/XFMrcYQLhapYyLaSA" :target="isMobile && '_self' || '_blank'">
                   <i class="iconfont icon-zichanshangjia"></i>
                   <span>{{ $t("header.header3") }}</span>
                 </a>
               </li>
               <li>
-               <a href="https://drive.google.com/drive/folders/13gk5XzfJmCUyRCmoleWH47REUOyGc4yo" target="_blank">
+               <a href="https://drive.google.com/drive/folders/13gk5XzfJmCUyRCmoleWH47REUOyGc4yo" :target="isMobile && '_self' || '_blank'">
                   <i class="iconfont icon-shenjibaogao"></i>
                   <span>{{ $t("header.header4") }}</span>
                </a>
@@ -84,10 +84,10 @@
           </div> -->
           <div class="bottom-wrap">
             <div class="community">
-              <a href="https://t.me/NerveNetwork" target="_blank">
+              <a href="https://t.me/NerveNetwork" :target="isMobile && '_self' || '_blank'">
                 <img src="../assets/img/Telegram.svg" alt="">
               </a>
-              <a href="https://discord.gg/PBkHeD7" target="_blank" style="padding-top: 1px">
+              <a href="https://discord.gg/PBkHeD7" :target="isMobile && '_self' || '_blank'" style="padding-top: 1px">
                 <img src="../assets/img/Discord.svg" alt="">
               </a>
             </div>
@@ -98,7 +98,6 @@
             </div>
           </div>
         </div>
-        
       </div>
     </transition>
     <el-dialog
@@ -107,7 +106,7 @@
       :modal-append-to-body="false"
       class="account-dialog"
       width="80%">
-      <div class="content tc">
+      <div class="header_content tc">
         <div class="address">
           {{superLong(address, 6)}}
           <i class="iconfont icon-lianjie" @click="openUrl"></i>
@@ -141,6 +140,11 @@
       address: String
     },
     components: {
+    },
+    computed: {
+      isMobile() {
+        return /Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent);
+      }
     },
     watch: {
       '$store.state.network': {
@@ -257,7 +261,7 @@
   }
 </script>
 
-<style lang="less">
+<style lang="less" scoped>
   @import "./../assets/css/style";
   .header {
     height: 64px;
@@ -393,7 +397,7 @@
         opacity: 0.46;
         background-color: rgb(33, 33, 33);
       }
-      .content {
+      .header_content {
         &.show {
           animation: rtl-drawer-in .3s;
         }
@@ -555,6 +559,10 @@
     100% {
       transform: translateX(100%);
     }
+  }
+
+  .cursor_pointer {
+    cursor: pointer;
   }
 
 </style>

@@ -1,6 +1,7 @@
 <template>
   <div class="tx-list second-page">
-    <back-bar :backTitle="$t('txList.txList1')"></back-bar>
+<!--    <back-bar :backTitle="$t('txList.txList1')"></back-bar>-->
+    <HeaderBar :address="$route.query.address" @quit="quit" />
     <div class="content">
       <div class="content-inner">
         <tab-switch v-model="swapType"></tab-switch>
@@ -64,12 +65,13 @@
 </template>
 
 <script>
-import BackBar from '@/components/BackBar';
+// import BackBar from '@/components/BackBar';
+import HeaderBar from "@/components/HeaderBar";
 import TxList from "@/components/TxList";
 import TabSwitch from "@/components/TabSwitch";
 import { valideNetwork, networkToChain } from "../home/SwftSwap"
 import moment from "moment"
-import { superLong, supportChainList } from '@/api/util'
+import {getCurrentAccount, superLong, supportChainList} from '@/api/util'
 
 export default {
   data () {
@@ -96,14 +98,14 @@ export default {
   },
 
   components: {
-    BackBar,
+    // BackBar,
+    HeaderBar,
     TxList,
     TabSwitch
   },
 
   watch: {},
 
-  computed: {},
 
   created() {
     const address = this.$route.query.address;
@@ -120,6 +122,9 @@ export default {
   mounted() {},
 
   methods: {
+    quit() {
+      this.$router.replace({ path: '/', query: { loginOut: true } });
+    },
     superLong(str, len = 5) {
       return superLong(str, len);
     },
@@ -212,7 +217,8 @@ export default {
         path: "/tx-detail",
         query: {
           orderId: txData.orderId,
-          equipmentNo: txData.destinationAddr
+          equipmentNo: txData.destinationAddr,
+          address: this.$route.query.address
         }
       })
     },
@@ -221,6 +227,7 @@ export default {
         path: "/tx-detail",
         query: {
           txHash: txData.txHash,
+          address: this.$route.query.address
         }
       })
       // console.log(456)
@@ -233,7 +240,7 @@ export default {
 }
 
 </script>
-<style lang="less">
+<style lang="less" scoped>
 .tx-list {
   .content {
     height: 390px;
