@@ -107,7 +107,6 @@ export default {
   methods: {
     getListByChain() {
       this.backupList = this.filteredList = this.list.filter(v => v.registerChain === this.activeChain);
-      console.log(this.filteredList, 99)
     },
     // 切换链
     changeChain(chain) {
