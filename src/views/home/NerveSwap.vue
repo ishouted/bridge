@@ -295,14 +295,24 @@ export default {
           if (feeList.length > 1) {
             const { value } = this.splitFeeSymbol(feeList[1]);
             if (this.amount && this.maxClick) {
-              this.amount = Minus(this.available, value);
-              this.checkAmountFee();
+              if (Minus(this.available, value) < 0) {
+                this.amountMsg = this.$t('home.home7');
+                this.amount = this.available;
+              } else {
+                this.amount = Minus(this.available, value);
+                this.checkAmountFee();
+              }
             }
           } else {
             const { value } = this.splitFeeSymbol(feeList[0]);
             if (this.amount && this.isMainAsset && this.maxClick) {
-              this.amount = Minus(this.available, value);
-              this.checkAmountFee();
+              if (Minus(this.available, value) < 0) {
+                this.amountMsg = this.$t('home.home7');
+                this.amount = this.available;
+              } else {
+                this.amount = Minus(this.available, value);
+                this.checkAmountFee();
+              }
             }
           }
         }
@@ -429,6 +439,7 @@ export default {
     async selectAsset(asset) {
       this.isMainAsset = false;
       this.maxClick = false;
+      this.crossInAuth = false;
       this.amountMsg = "";
       this.amount = "";
       this.available = 0;
