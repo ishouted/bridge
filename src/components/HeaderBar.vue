@@ -57,7 +57,7 @@
                 </a>
               </li>
               <li>
-                <a href="https://forms.gle/XFMrcYQLhapYyLaSA" :target="isMobile && '_self' || '_blank'">
+                <a href="https://docs.google.com/forms/d/e/1FAIpQLSdPXX4EDtzxqBg3OBMIq7EtoiBxnxcqokIeVzAqyXQFYbmf4w/viewform" :target="isMobile && '_self' || '_blank'">
                   <i class="iconfont icon-zichanshangjia"></i>
                   <span>{{ $t("header.header3") }}</span>
                 </a>

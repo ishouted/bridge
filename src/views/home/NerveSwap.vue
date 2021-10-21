@@ -245,6 +245,8 @@ export default {
       handler(val) {
         if (!val) return;
         // console.log(val, 111)
+        this.amountMsg = false;
+        this.fee = '';
         this.checkNetwork(val);
         if (val === this.toNetwork) {
           this.toNetwork = "";
@@ -289,10 +291,29 @@ export default {
     fee: {
       handler(val) {
         if (val) {
-          const { value } = this.splitFeeSymbol(val);
-          if (this.amount && this.isMainAsset && this.maxClick) {
-            this.amount = Minus(this.available, value);
-            this.checkAmountFee();
+          const feeList = val.split('+');
+          if (feeList.length > 1) {
+            const { value } = this.splitFeeSymbol(feeList[1]);
+            if (this.amount && this.maxClick) {
+              if (Minus(this.available, value) < 0) {
+                this.amountMsg = this.$t('home.home7');
+                this.amount = this.available;
+              } else {
+                this.amount = Minus(this.available, value);
+                this.checkAmountFee();
+              }
+            }
+          } else {
+            const { value } = this.splitFeeSymbol(feeList[0]);
+            if (this.amount && this.isMainAsset && this.maxClick) {
+              if (Minus(this.available, value) < 0) {
+                this.amountMsg = this.$t('home.home7');
+                this.amount = this.available;
+              } else {
+                this.amount = Minus(this.available, value);
+                this.checkAmountFee();
+              }
+            }
           }
         }
       },
@@ -418,6 +439,7 @@ export default {
     async selectAsset(asset) {
       this.isMainAsset = false;
       this.maxClick = false;
+      this.crossInAuth = false;
       this.amountMsg = "";
       this.amount = "";
       this.available = 0;

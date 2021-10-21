@@ -5,9 +5,10 @@ import Element from "element-ui";
 
 Vue.use(VueI18n);
 const i18n = new VueI18n({
-  locale: localStorage.lang || "cn",
+  locale: localStorage.lang || "en",
   messages,
 });
+localStorage.lang ? localStorage.setItem('lang', localStorage.lang) : localStorage.setItem('lang', 'en');
 // element插件的多语言切换
 Vue.use(Element, {
   i18n: (key, value) => i18n.t(key, value),

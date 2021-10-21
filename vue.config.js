@@ -43,7 +43,7 @@ module.exports = {
     open: true,
     proxy: {
       "/bridge-api": {
-        // target: "http://192.168.1.204:8083",
+        // target: "http://192.168.1.204:8085",
         target: "http://beta.bridge.nerve.network",
         // target: "https://bridge.nerve.network",
         changeOrigin: true,  // 是否跨域

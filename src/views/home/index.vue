@@ -136,11 +136,22 @@ export default {
       immediate: true,
       handler(val) {
         if (!val) return;
+        console.log(val, 'val', ETHNET)
         // const sessionNetwork = sessionStorage.getItem("network");
         // const NChains = ["NERVE", "NULS"]
         // if (NChains.indexOf(sessionNetwork) > -1) return;
         const chain = supportChainList.find(v => v[ETHNET] === val);
-        chain && this.$store.commit("changeNetwork", chain.value)
+        console.log(chain, 'chain')
+        if (chain) {
+          this.$store.commit("changeNetwork", chain.value);
+        } else {
+          const tempAddress = this.address.toUpperCase();
+          if (tempAddress.startsWith('TNULS') || tempAddress.startsWith('NULS')) {
+            this.$store.commit("changeNetwork", 'NULS');
+          } else {
+            this.$store.commit("changeNetwork", 'NERVE');
+          }
+        }
       }
     }
   },
@@ -177,10 +188,9 @@ export default {
       }
       this.wallet = window[this.walletType];
       this.address = this.wallet.selectedAddress;
+      console.log(this.wallet.selectedAddress, 'this.wallet.selectedAddress')
       if (!this.address) {
         await this.requestAccounts();
-      } else {
-        this.$store.commit("changeSelectAddress", this.address);
       }
       this.fromChainId = this.parseChainId(this.wallet.chainId);
       this.provider = new ethers.providers.Web3Provider(this.wallet);
